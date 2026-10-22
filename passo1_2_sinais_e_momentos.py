@@ -3,35 +3,35 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy.stats import norm
 
-pasta = Path("dados")
-arquivos = sorted(pasta.glob("*.txt"))
+pasta_dados = Path("dados")
+arquivos = sorted(pasta_dados.glob("*.txt"))
 cores = ["red", "blue"]
 
-# Cria a pasta de resultados (se já existir, não dá erro)
-pasta_resultados = Path("resultados")
-pasta_resultados.mkdir(parents=True, exist_ok=True)
+# Pastas de saída organizadas por passo
+pasta_passo1 = Path("resultados/passo1_sinais_e_histogramas")
+pasta_passo2 = Path("resultados/passo2_valores_esperados")
+pasta_passo1.mkdir(parents=True, exist_ok=True)
+pasta_passo2.mkdir(parents=True, exist_ok=True)
 
 dados = {}
 
-# Abre o arquivo de texto na pasta 'resultados' para gravar os valores
-with open(pasta_resultados / "estatisticas.txt", "w", encoding="utf-8") as f_txt:
+# Salva as estatísticas no passo 2
+with open(pasta_passo2 / "estatisticas.txt", "w", encoding="utf-8") as f_txt:
 
-    # Loop dos arquivos
     for arquivo, cor in zip(arquivos, cores):
         with open(arquivo, "r", encoding="utf-8") as f:
             valores = [float(linha.strip()) for linha in f if linha.strip()]
 
-        # Converte para array numpy para facilitar as contas
         arr = np.array(valores)
 
-        # Cálculos estatísticos
+        # Cálculos estatísticos (Passo 2)
         media = np.mean(arr)
         variancia = np.var(arr)
         desvio_padrao = np.std(arr)
         vmq = np.mean(arr**2)
         rms = np.sqrt(vmq)
 
-        # Exibe os resultados no terminal
+        # Exibe no terminal
         print(f"\nValores Esperados: {arquivo.name}")
         print(f"Média:          {media:.4f}")
         print(f"Variância:      {variancia:.4f}")
@@ -39,7 +39,6 @@ with open(pasta_resultados / "estatisticas.txt", "w", encoding="utf-8") as f_txt
         print(f"VMQ:            {vmq:.4f}")
         print(f"RMS:            {rms:.4f}")
 
-        # Salva os mesmos resultados no arquivo TXT
         f_txt.write(f"Valores Esperados: {arquivo.name}\n")
         f_txt.write(f"Média:          {media:.4f}\n")
         f_txt.write(f"Variância:      {variancia:.4f}\n")
@@ -50,7 +49,7 @@ with open(pasta_resultados / "estatisticas.txt", "w", encoding="utf-8") as f_txt
 
         dados[arquivo.name] = (valores, cor)
 
-        # Gráfico individual (maior, linha fina e sem borrão)
+        # Gráfico individual no tempo (Passo 1)
         plt.figure(figsize=(15, 6), dpi=120)
         plt.plot(valores, color=cor, linewidth=0.3, alpha=0.5, label=arquivo.name)
         plt.title(f"Gráfico Individual: {arquivo.name}")
@@ -59,10 +58,10 @@ with open(pasta_resultados / "estatisticas.txt", "w", encoding="utf-8") as f_txt
         plt.grid(True, linestyle="--", alpha=0.6)
         plt.legend()
         plt.tight_layout()
-        plt.savefig(pasta_resultados / f"grafico_{arquivo.stem}.png", dpi=150)
+        plt.savefig(pasta_passo1 / f"grafico_{arquivo.stem}.png", dpi=150)
         plt.close()
 
-        # Histograma
+        # Histograma normalizado (Passo 1)
         bins = 120 if "h263" in arquivo.name else 150
         plt.figure(figsize=(10, 5), dpi=120)
         plt.hist(arr, bins=bins, density=True, color=cor, alpha=0.6, label="Histograma")
@@ -72,10 +71,10 @@ with open(pasta_resultados / "estatisticas.txt", "w", encoding="utf-8") as f_txt
         plt.grid(True, linestyle="--", alpha=0.6)
         plt.legend()
         plt.tight_layout()
-        plt.savefig(pasta_resultados / f"histograma_{arquivo.stem}.png", dpi=150)
+        plt.savefig(pasta_passo1 / f"histograma_{arquivo.stem}.png", dpi=150)
         plt.close()
 
-        # Histograma com a Gaussiana teórica
+        # Histograma com Gaussiana Teórica (Passo 1)
         plt.figure(figsize=(10, 5), dpi=120)
         plt.hist(arr, bins=bins, density=True, color=cor, alpha=0.6, label="Histograma")
 
@@ -89,12 +88,11 @@ with open(pasta_resultados / "estatisticas.txt", "w", encoding="utf-8") as f_txt
         plt.grid(True, linestyle="--", alpha=0.6)
         plt.legend()
         plt.tight_layout()
-        plt.savefig(pasta_resultados / f"histograma_gaussiana_{arquivo.stem}.png", dpi=150)
+        plt.savefig(pasta_passo1 / f"histograma_gaussiana_{arquivo.stem}.png", dpi=150)
         plt.close()
 
-# --- PARTE 2: Gráfico Comparativo ---
+# Gráfico Comparativo no Tempo (Passo 1)
 plt.figure(figsize=(15, 6), dpi=120)
-
 for nome, (valores, cor) in dados.items():
     plt.plot(valores, color=cor, linewidth=0.3, alpha=0.5, label=nome)
 
@@ -104,7 +102,9 @@ plt.ylabel("Valor")
 plt.grid(True, linestyle="--", alpha=0.6)
 plt.legend()
 plt.tight_layout()
-
-# Salva o gráfico comparativo na pasta resultados
-plt.savefig(pasta_resultados / "grafico_comparativo.png", dpi=150)
+plt.savefig(pasta_passo1 / "grafico_comparativo.png", dpi=150)
 plt.close()
+
+print("\nPasso 1 e 2 concluídos!")
+print(f"Gráficos salvos em: {pasta_passo1}")
+print(f"Estatísticas salvas em: {pasta_passo2 / 'estatisticas.txt'}")
