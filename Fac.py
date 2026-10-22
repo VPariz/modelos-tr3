@@ -1,86 +1,106 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy import signal
+from matplotlib.backends.backend_pdf import PdfPages
 
 # ==========================================
 # 1. CARREGAR OS SINAIS
 # ==========================================
-x = np.loadtxt('startrek_h263_64k.txt')  # Sinal H.263
-y = np.loadtxt('startrek_mpeg4_hq.txt')  # Sinal MPEG-4
+x = np.loadtxt('startrek_h263_64k.txt')    # H.263 (~26k)
+y_original = np.loadtxt('startrek_mpeg4_hq.txt') # MPEG-4 (~90k)
 
-# ==========================================
-# 2. ADEQUAR O TAMANHO E REMOVER A MÉDIA
-# ==========================================
 N = len(x)
-y_igualado = signal.resample(y, N)
+N_y = len(y_original)
 
+# Reamostragem para a correlação cruzada (igualar tamanhos)
+y_resampled = signal.resample(y_original, N)
+
+# Centrar na média
 x_c = x - np.mean(x)
-y_c = y_igualado - np.mean(y_igualado)
+y_c_original = y_original - np.mean(y_original)
+y_c_resampled = y_resampled - np.mean(y_resampled)
 
 # ==========================================
-# 3. CALCULAR AS CORRELAÇÕES
+# 2. CALCULAR AS CORRELAÇÕES (VARREDURA COMPLETA)
 # ==========================================
+# Autocorrelação H.263 (tamanho ~52k)
 r_xx = np.correlate(x_c, x_c, mode='full')
-r_yy = np.correlate(y_c, y_c, mode='full')
-r_xy = np.correlate(x_c, y_c, mode='full')
+# Autocorrelação MPEG-4 (tamanho ~180k)
+r_yy = np.correlate(y_c_original, y_c_original, mode='full')
+# Correlação Cruzada (tamanho ~52k)
+r_xy = np.correlate(x_c, y_c_resampled, mode='full')
 
 # ==========================================
-# 4. NORMALIZAR (FATOR DE CORRELAÇÃO)
+# 3. NORMALIZAÇÃO
 # ==========================================
 pico_x = r_xx[N - 1]
-pico_y = r_yy[N - 1]
+pico_y = r_yy[N_y - 1]
+pico_y_resampled = np.sum(y_c_resampled**2)
 
-r_xx_norm = r_xx / pico_x
-r_yy_norm = r_yy / pico_y
-r_xy_norm = r_xy / np.sqrt(pico_x * pico_y)
+fator_xx = r_xx / pico_x
+fator_yy = r_yy / pico_y
+fator_xy = r_xy / np.sqrt(pico_x * pico_y_resampled)
 
-# ==========================================
-# 5. PREPARAR O EIXO X (LAGS DE -250 A 250)
-# ==========================================
-max_lag = 250
-centro = N - 1
-lags = np.arange(-max_lag, max_lag + 1)
-
-r_xx_plot = r_xx_norm[centro - max_lag : centro + max_lag + 1]
-r_yy_plot = r_yy_norm[centro - max_lag : centro + max_lag + 1]
-r_xy_plot = r_xy_norm[centro - max_lag : centro + max_lag + 1]
+# Criar os vetores de Lags
+lags_x = np.arange(-N + 1, N)
+lags_y = np.arange(-N_y + 1, N_y)
 
 # ==========================================
-# 6. PLOTAR OS GRÁFICOS
+# 4. GERAR O PDF COM AS DUAS VERSÕES
 # ==========================================
-fig, axs = plt.subplots(3, 1, figsize=(12, 10), constrained_layout=True)
+with PdfPages('FACs_StarTrek_Completo.pdf') as pdf:
 
-# --- TÍTULO GERAL DA FIGURA ---
-fig.suptitle('Análise de Correlação: Vídeo Star Trek', fontsize=16, fontweight='bold')
+    # ---------------------------------------------------------
+    # PÁGINA 1: ZOOM (-250 A 250)
+    # ---------------------------------------------------------
+    max_lag = 250
+    centro_x = N - 1
+    centro_y = N_y - 1
 
-# Gráfico 1: H.263
-axs[0].plot(lags, r_xx_plot, color='red')
-axs[0].set_title('FAC - Autocorrelação do H.263')
-axs[0].set_xlabel('Atraso (k)')
-axs[0].set_ylabel('Correlação Normalizada')
-axs[0].set_ylim(-0.05, 1.05)
-axs[0].grid(True)
+    xx_zoom = fator_xx[centro_x - max_lag : centro_x + max_lag + 1]
+    yy_zoom = fator_yy[centro_y - max_lag : centro_y + max_lag + 1]
+    xy_zoom = fator_xy[centro_x - max_lag : centro_x + max_lag + 1]
+    lags_zoom = np.arange(-max_lag, max_lag + 1)
 
-# Gráfico 2: MPEG-4
-axs[1].plot(lags, r_yy_plot, color='blue')
-axs[1].set_title('FAC - Autocorrelação do MPEG-4')
-axs[1].set_xlabel('Atraso (k)')
-axs[1].set_ylabel('Correlação Normalizada')
-axs[1].set_ylim(-0.05, 1.05)
-axs[1].grid(True)
+    fig1, axs1 = plt.subplots(3, 1, figsize=(10, 12), constrained_layout=True)
+    fig1.suptitle('FACs - Zoom (-250 a 250 amostras)', fontsize=16, fontweight='bold')
 
-# Gráfico 3: Cruzada (Escala Automática para ver as ondinhas)
-axs[2].plot(lags, r_xy_plot, color='purple')
-axs[2].set_title('Correlação Cruzada (H.263 vs MPEG-4)')
-axs[2].set_xlabel('Atraso (k)')
-axs[2].set_ylabel('Correlação Normalizada')
+    axs1[0].plot(lags_zoom, xx_zoom, color='red')
+    axs1[0].set_title('Autocorrelação H.263 (Zoom)')
+    axs1[0].grid(True)
 
-# Linha de referência no zero
-axs[2].axhline(0, color='black', linewidth=1, linestyle='--')
-axs[2].grid(True)
+    axs1[1].plot(lags_zoom, yy_zoom, color='blue')
+    axs1[1].set_title('Autocorrelação MPEG-4 (Zoom)')
+    axs1[1].grid(True)
 
-# Salva os arquivos
-plt.savefig('FACs_StarTrek_Final.pdf', format='pdf', bbox_inches='tight')
-plt.savefig('FACs_StarTrek_Final.png', format='png', dpi=300, bbox_inches='tight')
+    axs1[2].plot(lags_zoom, xy_zoom, color='purple')
+    axs1[2].set_title('Correlação Cruzada (Zoom)')
+    axs1[2].axhline(0, color='black', linestyle='--', linewidth=1)
+    axs1[2].grid(True)
 
-plt.show()
+    pdf.savefig(fig1)
+    plt.close(fig1)
+
+    # ---------------------------------------------------------
+    # PÁGINA 2: VARREDURA COMPLETA (TODAS AS AMOSTRAS)
+    # ---------------------------------------------------------
+    fig2, axs2 = plt.subplots(3, 1, figsize=(10, 12), constrained_layout=True)
+    fig2.suptitle('FACs - Varredura Completa de Amostras', fontsize=16, fontweight='bold')
+
+    axs2[0].plot(lags_x, fator_xx, color='red')
+    axs2[0].set_title('Autocorrelação H.263 (Completa ~26k)')
+    axs2[0].grid(True)
+
+    axs2[1].plot(lags_y, fator_yy, color='blue')
+    axs2[1].set_title('Autocorrelação MPEG-4 (Completa ~90k)')
+    axs2[1].grid(True)
+
+    axs2[2].plot(lags_x, fator_xy, color='purple')
+    axs2[2].set_title('Correlação Cruzada (Completa ~26k)')
+    axs2[2].axhline(0, color='black', linestyle='--', linewidth=1)
+    axs2[2].grid(True)
+
+    pdf.savefig(fig2)
+    plt.close(fig2)
+
+print("Arquivo 'FACs_StarTrek_Completo.pdf' gerado com sucesso!")
