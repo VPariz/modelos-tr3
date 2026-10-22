@@ -8,59 +8,78 @@ arquivos = sorted(pasta_dados.glob("*.txt"))
 pasta_passo4 = Path("resultados/passo4_descorrelacao")
 pasta_passo4.mkdir(parents=True, exist_ok=True)
 
-# Lê os dois sinais (o menor vira x, o maior vira y)
+# Le os dois sinais (o menor vira x, o maior vira y)
 sinais = [np.loadtxt(arq) for arq in arquivos]
+nomes = [arq.stem for arq in arquivos]
 ordem = np.argsort([len(s) for s in sinais])
 x, y = sinais[ordem[0]], sinais[ordem[1]]
+nome_x, nome_y = nomes[ordem[0]], nomes[ordem[1]]
 
-# Iguala os tamanhos com amostragem uniforme direta
 N = len(x)
-indices = np.linspace(0, len(y) - 1, N).astype(int)
-y = y[indices]
+N_y = len(y)
 
-# Vetores centrados na média
+# Selecao do bloco continuo do sinal maior preservando a mesma PDF (media e desvio)
+m_y = np.mean(y)
+s_y = np.std(y)
+
+melhor_k = 0
+menor_erro = float("inf")
+for k_cand in range(0, N_y - N + 1, 50):
+    cand = y[k_cand : k_cand + N]
+    erro = np.sqrt(((np.mean(cand) - m_y) / s_y)**2 + ((np.std(cand) - s_y) / s_y)**2)
+    if erro < menor_erro:
+        menor_erro = erro
+        melhor_k = k_cand
+
+y_bloco = y[melhor_k : melhor_k + N]
+
+print(f"Bloco selecionado para descorrelacao: inicio no indice k = {melhor_k}")
+
+# Sinais centrados na media (esperanca nula)
 z1 = x - np.mean(x)
-z2 = y - np.mean(y)
+z2 = y_bloco - np.mean(y_bloco)
 Z = np.vstack([z1, z2])
 
-# Matriz de covariância original
+# Matriz de covariancia original
 K_Z = np.cov(Z)
 
-# Diagonalização formal do JJW (Cap. 6): K_Z = Q * Lambda * Q^T
+# Diagonalizacao formal (J.J.W. Cap. 6 / Leon-Garcia): K_Z = Q * Lambda * Q^T
 autovalores, Q = np.linalg.eigh(K_Z)
 
-# Transformação ortogonal: W = Q^T * Z
+# Transformacao ortogonal (KLT): W = Q^T * Z
 W = Q.T @ Z
 w1, w2 = W[0], W[1]
 K_W = np.cov(W)
 
-# Correlação cruzada normalizada ANTES e DEPOIS da descorrelação
+# Correlacao cruzada normalizada antes e depois
 r_antes = np.correlate(z1, z2, mode="full") / np.sqrt(np.sum(z1**2) * np.sum(z2**2))
 r_depois = np.correlate(w1, w2, mode="full") / np.sqrt(np.sum(w1**2) * np.sum(w2**2))
 
-lags = np.arange(-N + 1, N)
+lags_total = np.arange(-N + 1, N)
 centro = N - 1
 
-# Grava a memória de cálculo formal
+# Grava memoria de calculo em texto
 np.set_printoptions(suppress=True, precision=4)
 texto = (
     "=====================================================\n"
-    "PASSO 4: DESCORRELAÇÃO 2-A-2 (MATRIZ DE COVARIÂNCIA)\n"
+    "PASSO 4: DESCORRELACAO 2-A-2 (MATRIZ DE COVARIANCIA)\n"
     "=====================================================\n\n"
-    "1. Matriz de covariância original (K_Z):\n"
+    f"Sinal 1: {nome_x} (N = {N})\n"
+    f"Sinal 2: Bloco continuo de {nome_y} (N = {N}, offset k = {melhor_k})\n\n"
+    "1. Matriz de covariancia original (K_Z):\n"
     f"{K_Z}\n\n"
-    f"Coeficiente de correlação original no lag 0 (rho_XY): {r_antes[centro]:.6f}\n\n"
-    "2. Autovalores (variâncias das componentes descorrelacionadas):\n"
+    f"Coeficiente de correlacao original no lag 0 (rho_XY): {r_antes[centro]:.6f}\n\n"
+    "2. Autovalores (variancias das componentes descorrelacionadas):\n"
     f"lambda_1 = {autovalores[0]:.4f}\n"
     f"lambda_2 = {autovalores[1]:.4f}\n\n"
-    "3. Matriz modal Q (autovetores em colunas):\n"
+    "3. Matriz modal Q (autovetores ortonormais em colunas):\n"
     f"{Q}\n\n"
-    "4. Matriz de covariância transformada (K_W = Q^T * K_Z * Q):\n"
+    "4. Matriz de covariancia transformada (K_W = Q^T * K_Z * Q):\n"
     f"{K_W}\n\n"
-    f"Coeficiente de correlação resultante no lag 0: {r_depois[centro]:.10e} (exatamente 0)\n\n"
-    "Conclusão: O termo fora da diagonal de K_W é rigorosamente nulo,\n"
-    "e a correlação cruzada no lag zero bate exatamente em 0.0000,\n"
-    "comprovando a descorrelação completa das componentes W1 e W2.\n"
+    f"Coeficiente de correlacao resultante no lag 0: {r_depois[centro]:.10e} (exatamente 0)\n\n"
+    "Conclusao: Os termos fora da diagonal de K_W sao rigorosamente nulos (ordem de 10^-12),\n"
+    "e a correlacao cruzada no lag zero atinge 0.0000, comprovando a descorrelacao\n"
+    "completa das componentes W1 e W2.\n"
 )
 
 print(texto)
@@ -68,66 +87,102 @@ print(texto)
 with open(pasta_passo4 / "descorrelacao.txt", "w", encoding="utf-8") as f:
     f.write(texto)
 
-# 1. Gráfico da Correlação Cruzada Antes vs Depois - ZOOM (-250 a +250)
-max_lag = 250
-lags_zoom = np.arange(-max_lag, max_lag + 1)
-antes_zoom = r_antes[centro - max_lag : centro + max_lag + 1]
-depois_zoom = r_depois[centro - max_lag : centro + max_lag + 1]
+# =========================================================================
+# GRAFICOS
+# =========================================================================
+
+# 1. Correlacao Cruzada Antes vs Depois - Parte Positiva Zoom (0 a 250)
+max_zoom = 250
+lags_zoom_pos = np.arange(0, max_zoom + 1)
+antes_zoom_pos = r_antes[centro : centro + max_zoom + 1]
+depois_zoom_pos = r_depois[centro : centro + max_zoom + 1]
 
 fig, axs = plt.subplots(2, 1, figsize=(11, 7), dpi=120)
 
-axs[0].plot(lags_zoom, antes_zoom, color="purple", linewidth=1.2)
+axs[0].plot(lags_zoom_pos, antes_zoom_pos, color="purple", linewidth=1.2)
 axs[0].axhline(0, color="black", linestyle="--", linewidth=0.8)
 axs[0].plot(0, r_antes[centro], "ro", label=f"Lag 0: {r_antes[centro]:.4f}")
-axs[0].set_title("Correlação Cruzada ANTES da Descorrelação (Zoom)")
+axs[0].set_title("Correlacao Cruzada ANTES da Descorrelacao (Parte Positiva Zoom)")
 axs[0].set_ylabel("Coeficiente")
 axs[0].grid(True, linestyle="--", alpha=0.6)
 axs[0].legend(loc="upper right")
 
-axs[1].plot(lags_zoom, depois_zoom, color="green", linewidth=1.2)
+axs[1].plot(lags_zoom_pos, depois_zoom_pos, color="green", linewidth=1.2)
 axs[1].axhline(0, color="black", linestyle="--", linewidth=0.8)
 axs[1].plot(0, r_depois[centro], "go", label=f"Lag 0: {r_depois[centro]:.4f} (Zerado)")
-axs[1].set_title("Correlação Cruzada DEPOIS da Descorrelação (Zoom)")
+axs[1].set_title("Correlacao Cruzada DEPOIS da Descorrelacao (Parte Positiva Zoom)")
+axs[1].set_xlabel("Lag (k >= 0)")
+axs[1].set_ylabel("Coeficiente")
+axs[1].grid(True, linestyle="--", alpha=0.6)
+axs[1].legend(loc="upper right")
+
+plt.tight_layout()
+plt.savefig(pasta_passo4 / "descorrelacao_cruzada_zoom_positivo.png", dpi=150)
+plt.close()
+
+# 2. Correlacao Cruzada Antes vs Depois - Parte Positiva Completa (0 a N-1)
+lags_pos = np.arange(0, N)
+antes_pos = r_antes[centro : centro + N]
+depois_pos = r_depois[centro : centro + N]
+
+fig, axs = plt.subplots(2, 1, figsize=(11, 7), dpi=120)
+
+axs[0].plot(lags_pos, antes_pos, color="purple", linewidth=0.8)
+axs[0].axhline(0, color="black", linestyle="--", linewidth=0.8)
+axs[0].set_title("Correlacao Cruzada ANTES da Descorrelacao (Parte Positiva Completa)")
+axs[0].set_ylabel("Coeficiente")
+axs[0].grid(True, linestyle="--", alpha=0.6)
+
+axs[1].plot(lags_pos, depois_pos, color="green", linewidth=0.8)
+axs[1].axhline(0, color="black", linestyle="--", linewidth=0.8)
+axs[1].set_title("Correlacao Cruzada DEPOIS da Descorrelacao (Parte Positiva Completa)")
+axs[1].set_xlabel("Lag (k >= 0)")
+axs[1].set_ylabel("Coeficiente")
+axs[1].grid(True, linestyle="--", alpha=0.6)
+
+plt.tight_layout()
+plt.savefig(pasta_passo4 / "descorrelacao_cruzada_positiva_completa.png", dpi=150)
+plt.close()
+
+# 3. Correlacao Cruzada Antes vs Depois - Zoom Simetrico (-250 a +250)
+lags_zoom_sim = np.arange(-max_zoom, max_zoom + 1)
+antes_zoom_sim = r_antes[centro - max_zoom : centro + max_zoom + 1]
+depois_zoom_sim = r_depois[centro - max_zoom : centro + max_zoom + 1]
+
+fig, axs = plt.subplots(2, 1, figsize=(11, 7), dpi=120)
+
+axs[0].plot(lags_zoom_sim, antes_zoom_sim, color="purple", linewidth=1.2)
+axs[0].axhline(0, color="black", linestyle="--", linewidth=0.8)
+axs[0].plot(0, r_antes[centro], "ro", label=f"Lag 0: {r_antes[centro]:.4f}")
+axs[0].set_title("Correlacao Cruzada ANTES da Descorrelacao (Zoom Simetrico -250 a +250)")
+axs[0].set_ylabel("Coeficiente")
+axs[0].grid(True, linestyle="--", alpha=0.6)
+axs[0].legend(loc="upper right")
+
+axs[1].plot(lags_zoom_sim, depois_zoom_sim, color="green", linewidth=1.2)
+axs[1].axhline(0, color="black", linestyle="--", linewidth=0.8)
+axs[1].plot(0, r_depois[centro], "go", label=f"Lag 0: {r_depois[centro]:.4f} (Zerado)")
+axs[1].set_title("Correlacao Cruzada DEPOIS da Descorrelacao (Zoom Simetrico -250 a +250)")
 axs[1].set_xlabel("Lag")
 axs[1].set_ylabel("Coeficiente")
 axs[1].grid(True, linestyle="--", alpha=0.6)
 axs[1].legend(loc="upper right")
 
 plt.tight_layout()
-plt.savefig(pasta_passo4 / "descorrelacao_cruzada_zoom.png", dpi=150)
+plt.savefig(pasta_passo4 / "descorrelacao_cruzada_zoom_simetrico.png", dpi=150)
 plt.close()
 
-# 2. Gráfico da Correlação Cruzada Antes vs Depois - Varredura Completa
-fig, axs = plt.subplots(2, 1, figsize=(11, 7), dpi=120)
-
-axs[0].plot(lags, r_antes, color="purple", linewidth=0.8)
-axs[0].axhline(0, color="black", linestyle="--", linewidth=0.8)
-axs[0].set_title("Correlação Cruzada ANTES da Descorrelação (Varredura Completa)")
-axs[0].set_ylabel("Coeficiente")
-axs[0].grid(True, linestyle="--", alpha=0.6)
-
-axs[1].plot(lags, r_depois, color="green", linewidth=0.8)
-axs[1].axhline(0, color="black", linestyle="--", linewidth=0.8)
-axs[1].set_title("Correlação Cruzada DEPOIS da Descorrelação (Varredura Completa)")
-axs[1].set_xlabel("Lag")
-axs[1].set_ylabel("Coeficiente")
-axs[1].grid(True, linestyle="--", alpha=0.6)
-
-plt.tight_layout()
-plt.savefig(pasta_passo4 / "descorrelacao_cruzada_completa.png", dpi=150)
-plt.close()
-
-# 3. Gráfico de dispersão opcional (nuvem de pontos)
+# 4. Dispersao Antes vs Depois (nuvem de pontos)
 passo = 5
 fig, axs = plt.subplots(1, 2, figsize=(12, 5), dpi=120)
 axs[0].scatter(Z[0, ::passo], Z[1, ::passo], s=4, alpha=0.3, color="red")
-axs[0].set_title("Dispersão Antes (Z1, Z2)")
+axs[0].set_title("Dispersao Antes (Z1, Z2)")
 axs[0].set_xlabel("Z1")
 axs[0].set_ylabel("Z2")
 axs[0].grid(True, linestyle="--", alpha=0.6)
 
 axs[1].scatter(W[0, ::passo], W[1, ::passo], s=4, alpha=0.3, color="blue")
-axs[1].set_title("Dispersão Depois (W1, W2)")
+axs[1].set_title("Dispersao Depois (W1, W2)")
 axs[1].set_xlabel("W1")
 axs[1].set_ylabel("W2")
 axs[1].grid(True, linestyle="--", alpha=0.6)
@@ -136,5 +191,5 @@ plt.tight_layout()
 plt.savefig(pasta_passo4 / "descorrelacao_dispersao.png", dpi=150)
 plt.close()
 
-print("Passo 4 concluído!")
+print("Passo 4 concluido!")
 print(f"Resultados salvos em: {pasta_passo4}")
