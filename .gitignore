@@ -4,5 +4,10 @@ __pycache__/
 venv/
 .vscode/
 .idea/
+
+# Dados confidenciais
 dados/*.txt
+!dados/.gitkeep
+
+# Resultados gerados localmente
 resultados/
