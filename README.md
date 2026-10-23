@@ -5,11 +5,18 @@ Códigos em Python para o TR3 de Modelos Probabilísticos (Análise Estocástica
 ## Estrutura do Projeto
 
 - `dados/`: pasta para os arquivos de entrada `.txt`.
-- `resultados/`: pasta gerada automaticamente ao rodar os scripts, organizada pelos passos da professora:
-  - `passo1_sinais_e_histogramas/`: gráficos temporais individuais, comparativo e histogramas com a Gaussiana teórica.
-  - `passo2_valores_esperados/`: arquivo `estatisticas.txt` com média, variância, desvio padrão, VMQ e RMS.
-  - `passo3_facs/`: as 3 FACs (autocorrelação de cada sinal e correlação cruzada, completas e com zoom).
-  - `passo4_descorrelacao/`: matrizes de covariância antes e depois, autovalores, autovetores e gráfico de dispersão.
+- `resultados/`: pasta gerada automaticamente ao rodar os scripts, com os gráficos principais na pasta direta e os complementares/sobrepostos em subpastas `extras/`:
+  - `passo1_sinais_e_histogramas/`:
+    - Principais: gráficos temporais individuais e histogramas com a Gaussiana teórica de cada sinal.
+    - `extras/`: sinais e histogramas comparativos sobrepostos.
+  - `passo2_valores_esperados/`:
+    - `estatisticas.txt`: média, variância, desvio padrão, VMQ e RMS.
+  - `passo3_facs/`:
+    - Principais: autocorrelações individuais e correlação cruzada (varredura completa e zoom), além da tabela de equivalência do bloco cortado (`comparacao_valores_esperados_bloco.txt`).
+    - `extras/`: gráficos combinados 3-em-1 e histograma sobreposto de verificação da PDF.
+  - `passo4_descorrelacao/`:
+    - Principais: memória de cálculo formal (`descorrelacao.txt`) e curvas de correlação cruzada antes vs depois (zoom e completa).
+    - `extras/`: dispersão em nuvem de pontos e zoom simétrico (-250 a +250).
 
 ## Scripts
 

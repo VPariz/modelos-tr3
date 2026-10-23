@@ -6,7 +6,9 @@ pasta_dados = Path("dados")
 arquivos = sorted(pasta_dados.glob("*.txt"))
 
 pasta_passo3 = Path("resultados/passo3_facs")
+pasta_passo3_extras = pasta_passo3 / "extras"
 pasta_passo3.mkdir(parents=True, exist_ok=True)
+pasta_passo3_extras.mkdir(parents=True, exist_ok=True)
 
 # Le os dois sinais (o menor vira x, o maior vira y)
 sinais = [np.loadtxt(arq) for arq in arquivos]
@@ -29,7 +31,6 @@ vmq_y = np.mean(y**2)
 rms_y = np.sqrt(vmq_y)
 
 # Varredura em dois estagios de todos os intervalos possiveis de tamanho N
-# Estagio 1: varredura ampla com passo de 10 amostras
 melhor_k = 0
 menor_erro = float("inf")
 for k_cand in range(0, N_y - N + 1, 10):
@@ -41,7 +42,6 @@ for k_cand in range(0, N_y - N + 1, 10):
         menor_erro = erro
         melhor_k = k_cand
 
-# Estagio 2: refinamento fino com passo de 1 amostra na vizinhanca
 k_ini = max(0, melhor_k - 30)
 k_fim = min(N_y - N + 1, melhor_k + 30)
 for k_cand in range(k_ini, k_fim):
@@ -84,17 +84,17 @@ print(relatorio_bloco)
 with open(pasta_passo3 / "comparacao_valores_esperados_bloco.txt", "w", encoding="utf-8") as f:
     f.write(relatorio_bloco)
 
-# Grafico de Verificacao da Manutencao da PDF (Histograma sobreposto)
+# Grafico de Verificacao da Manutencao da PDF - SALVO EM EXTRAS (para nao poluir)
 plt.figure(figsize=(10, 5), dpi=120)
 plt.hist(y, bins=150, density=True, color="blue", alpha=0.45, label=f"MPEG-4 Completo (~90k) [m={m_y:.1f}, s={s_y:.1f}]")
 plt.hist(y_bloco, bins=150, density=True, histtype="step", color="red", linewidth=1.8, label=f"MPEG-4 Bloco Cortado (~26k, k={melhor_k}) [m={m_b:.1f}, s={s_b:.1f}]")
-plt.title("Verificacao da Manutencao da PDF: MPEG-4 Original vs Bloco Cortado")
+plt.title("Verificacao da PDF: MPEG-4 Original vs Bloco Cortado")
 plt.xlabel("Valor")
 plt.ylabel("Densidade")
 plt.grid(True, linestyle="--", alpha=0.6)
 plt.legend()
 plt.tight_layout()
-plt.savefig(pasta_passo3 / "verificacao_pdf_bloco_mpeg4.png", dpi=150)
+plt.savefig(pasta_passo3_extras / "verificacao_pdf_bloco_mpeg4.png", dpi=150)
 plt.close()
 
 # =========================================================================
@@ -118,9 +118,8 @@ fac_yy = r_yy / r_yy[N_y - 1]
 fac_xy = r_xy / np.sqrt(np.sum(x_c**2) * np.sum(y_bloco_c**2))
 
 # =========================================================================
-# 3. PARTE POSITIVA DOS GRAFICOS (conforme orientacao da professora)
+# 3. GRAFICOS PRINCIPAIS INDIVIDUAIS (PARTE POSITIVA, k >= 0)
 # =========================================================================
-# Como a autocorrelacao e funcao par, a parte positiva (lags >= 0) contem toda a informacao
 lags_pos_x = np.arange(0, N)
 lags_pos_y = np.arange(0, N_y)
 
@@ -128,14 +127,13 @@ fac_xx_pos = fac_xx[N - 1 :]
 fac_yy_pos = fac_yy[N_y - 1 :]
 fac_xy_pos = fac_xy[N - 1 :]
 
-# Zooms positivos (lag 0 a 250)
 max_zoom = 250
 lags_zoom_pos = np.arange(0, max_zoom + 1)
 xx_zoom_pos = fac_xx_pos[: max_zoom + 1]
 yy_zoom_pos = fac_yy_pos[: max_zoom + 1]
 xy_zoom_pos = fac_xy_pos[: max_zoom + 1]
 
-def plotar_positivo(lags, valores, titulo, cor, arquivo_saida):
+def plotar_grafico(lags, valores, titulo, cor, arquivo_saida):
     plt.figure(figsize=(11, 5), dpi=120)
     plt.plot(lags, valores, color=cor, linewidth=0.9)
     plt.axhline(0, color="black", linestyle="--", linewidth=0.8)
@@ -144,20 +142,23 @@ def plotar_positivo(lags, valores, titulo, cor, arquivo_saida):
     plt.ylabel("Coeficiente")
     plt.grid(True, linestyle="--", alpha=0.6)
     plt.tight_layout()
-    plt.savefig(pasta_passo3 / arquivo_saida, dpi=150)
+    plt.savefig(arquivo_saida, dpi=150)
     plt.close()
 
-# Graficos individuais positivos - Varredura completa
-plotar_positivo(lags_pos_x, fac_xx_pos, f"Autocorrelacao (Parte Positiva): {nome_x}", "red", f"fac_{nome_x}_positiva_completa.png")
-plotar_positivo(lags_pos_y, fac_yy_pos, f"Autocorrelacao (Parte Positiva): {nome_y}", "blue", f"fac_{nome_y}_positiva_completa.png")
-plotar_positivo(lags_pos_x, fac_xy_pos, f"Correlacao Cruzada (Parte Positiva): {nome_x} x Bloco {nome_y}", "purple", "fac_cruzada_positiva_completa.png")
+# 1. Graficos Principais Individuais - Varredura completa (direto na pasta passo3)
+plotar_grafico(lags_pos_x, fac_xx_pos, f"Autocorrelacao: {nome_x}", "red", pasta_passo3 / f"fac_{nome_x}_completa.png")
+plotar_grafico(lags_pos_y, fac_yy_pos, f"Autocorrelacao: {nome_y}", "blue", pasta_passo3 / f"fac_{nome_y}_completa.png")
+plotar_grafico(lags_pos_x, fac_xy_pos, f"Correlacao Cruzada: {nome_x} x Bloco {nome_y}", "purple", pasta_passo3 / "fac_cruzada_completa.png")
 
-# Graficos individuais positivos - Zoom (0 a 250)
-plotar_positivo(lags_zoom_pos, xx_zoom_pos, f"Autocorrelacao Zoom (0 a 250): {nome_x}", "red", f"fac_{nome_x}_zoom_positivo.png")
-plotar_positivo(lags_zoom_pos, yy_zoom_pos, f"Autocorrelacao Zoom (0 a 250): {nome_y}", "blue", f"fac_{nome_y}_zoom_positivo.png")
-plotar_positivo(lags_zoom_pos, xy_zoom_pos, "Correlacao Cruzada Zoom (0 a 250)", "purple", "fac_cruzada_zoom_positivo.png")
+# 2. Graficos Principais Individuais - Zoom 0 a 250 (direto na pasta passo3)
+plotar_grafico(lags_zoom_pos, xx_zoom_pos, f"Autocorrelacao Zoom (0 a 250): {nome_x}", "red", pasta_passo3 / f"fac_{nome_x}_zoom.png")
+plotar_grafico(lags_zoom_pos, yy_zoom_pos, f"Autocorrelacao Zoom (0 a 250): {nome_y}", "blue", pasta_passo3 / f"fac_{nome_y}_zoom.png")
+plotar_grafico(lags_zoom_pos, xy_zoom_pos, f"Correlacao Cruzada Zoom (0 a 250): {nome_x} x Bloco {nome_y}", "purple", pasta_passo3 / "fac_cruzada_zoom.png")
 
-# Grafico 3-em-1 Positivo Completo (pronto para o relatorio)
+# =========================================================================
+# 4. GRAFICOS EXTRAS/SOBREPOSTOS (SALVOS NA SUBPASTA extras/)
+# =========================================================================
+# Grafico 3-em-1 Positivo Completo
 fig, axs = plt.subplots(3, 1, figsize=(11, 9), dpi=120)
 axs[0].plot(lags_pos_x, fac_xx_pos, color="red", linewidth=0.8)
 axs[0].set_title(f"Autocorrelacao: {nome_x}")
@@ -174,7 +175,7 @@ axs[2].set_xlabel("Lag (k >= 0)")
 axs[2].grid(True, linestyle="--", alpha=0.6)
 
 plt.tight_layout()
-plt.savefig(pasta_passo3 / "facs_3_em_1_positiva_completa.png", dpi=150)
+plt.savefig(pasta_passo3_extras / "facs_3_em_1_completa.png", dpi=150)
 plt.close()
 
 # Grafico 3-em-1 Positivo com Zoom (0 a 250)
@@ -194,8 +195,9 @@ axs[2].set_xlabel("Lag (k >= 0)")
 axs[2].grid(True, linestyle="--", alpha=0.6)
 
 plt.tight_layout()
-plt.savefig(pasta_passo3 / "facs_3_em_1_zoom_positivo.png", dpi=150)
+plt.savefig(pasta_passo3_extras / "facs_3_em_1_zoom.png", dpi=150)
 plt.close()
 
 print("Passo 3 concluido!")
-print(f"Graficos, verificacao e tabela de valores esperados salvos em: {pasta_passo3}")
+print(f"Graficos principais em: {pasta_passo3}")
+print(f"Graficos extras (3-em-1 e histograma sobreposto) em: {pasta_passo3_extras}")
