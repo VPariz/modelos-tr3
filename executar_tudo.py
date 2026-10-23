@@ -5,11 +5,12 @@ scripts = [
     ("Passo 1 e 2 (Sinais, Histogramas e Valores Esperados)", "passo1_2_sinais_e_momentos.py"),
     ("Passo 3 (Funcoes de Autocorrelacao e Correlacao Cruzada)", "passo3_facs.py"),
     ("Passo 4 (Descorrelacao 2-a-2 via Diagonalizacao)", "passo4_descorrelacao.py"),
+    ("Passo 6 e 7 (Densidades Espectrais de Potencia e Cor do Espectro)", "passo6_7_dep_e_espectro.py"),
 ]
 
-print("=" * 60)
+print("=" * 65)
 print("EXECUTANDO TODOS OS PASSOS DO TR3 (MODELOS PROBABILISTICOS)")
-print("=" * 60)
+print("=" * 65)
 
 for descricao, script in scripts:
     print(f"\n>>> Rodando: {descricao} ({script})...")
@@ -18,7 +19,7 @@ for descricao, script in scripts:
         print(f"Erro ao executar {script}!")
         sys.exit(res.returncode)
 
-print("\n" + "=" * 60)
+print("\n" + "=" * 65)
 print("TODOS OS PASSOS FORAM EXECUTADOS COM SUCESSO!")
 print("Estrutura da pasta 'resultados/':")
 print("  |-- passo1_sinais_e_histogramas/")
@@ -30,6 +31,9 @@ print("  |-- passo3_facs/")
 print("  |     |-- (FACs individuais e comparacao de valores esperados)")
 print("  |     +-- extras/ (3-em-1 e histograma sobreposto)")
 print("  |-- passo4_descorrelacao/")
-print("        |-- descorrelacao.txt e correlacao antes/depois")
-print("        +-- extras/ (dispersao e zoom simetrico)")
-print("=" * 60)
+print("  |     |-- descorrelacao.txt e correlacao antes/depois")
+print("  |     +-- extras/ (dispersao e zoom simetrico)")
+print("  |-- passo6_7_dep_e_espectro/")
+print("        |-- analise_espectro.txt, DEPs e Cores do Espectro")
+print("        +-- extras/ (DEPs e Cores comparativas sobrepostas)")
+print("=" * 65)
