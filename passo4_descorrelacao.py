@@ -18,15 +18,28 @@ nome_x, nome_y = nomes[ordem[0]], nomes[ordem[1]]
 N = len(x)
 N_y = len(y)
 
-# Selecao do bloco continuo do sinal maior preservando a mesma PDF (media e desvio)
+# Selecao do bloco baseada nos valores esperados (Passo 2)
 m_y = np.mean(y)
 s_y = np.std(y)
 
 melhor_k = 0
 menor_erro = float("inf")
-for k_cand in range(0, N_y - N + 1, 50):
+for k_cand in range(0, N_y - N + 1, 10):
     cand = y[k_cand : k_cand + N]
-    erro = np.sqrt(((np.mean(cand) - m_y) / s_y)**2 + ((np.std(cand) - s_y) / s_y)**2)
+    m_c = np.mean(cand)
+    s_c = np.std(cand)
+    erro = np.sqrt(((m_c - m_y) / s_y)**2 + ((s_c - s_y) / s_y)**2)
+    if erro < menor_erro:
+        menor_erro = erro
+        melhor_k = k_cand
+
+k_ini = max(0, melhor_k - 30)
+k_fim = min(N_y - N + 1, melhor_k + 30)
+for k_cand in range(k_ini, k_fim):
+    cand = y[k_cand : k_cand + N]
+    m_c = np.mean(cand)
+    s_c = np.std(cand)
+    erro = np.sqrt(((m_c - m_y) / s_y)**2 + ((s_c - s_y) / s_y)**2)
     if erro < menor_erro:
         menor_erro = erro
         melhor_k = k_cand
