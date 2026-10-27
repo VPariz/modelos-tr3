@@ -2,6 +2,7 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 import numpy as np
+from scipy.interpolate import interp1d
 
 pasta_base = Path(__file__).resolve().parent
 pasta_dados = pasta_base / "dados"
@@ -112,11 +113,18 @@ fac_yy = r_yy / r_yy[0]
 r_xy = np.correlate(x_c, y_bloco_c, mode="full")[N - 1 :] / (N - k_x)
 fac_xy = r_xy / np.sqrt(r_xx[0] * (np.var(y_bloco)))
 
+# Linha da autocorrelacao sem picos e vales (envoltoria dos picos do GoP a cada 12 quadros)
+# Conforme orientacao da professora para obter uma curva continua suave
+picos_k = np.arange(0, N_y, 12)
+f_env = interp1d(picos_k, fac_yy[picos_k], kind="linear", fill_value="extrapolate")
+fac_yy_suave = f_env(k_y)
+
 # zooms positivos (0 a 250)
 max_zoom = 250
 lags_zoom = np.arange(0, max_zoom + 1)
 xx_zoom = fac_xx[: max_zoom + 1]
-yy_zoom = fac_yy[: max_zoom + 1]
+yy_zoom = fac_yy_suave[: max_zoom + 1] # linha sem picos e vales
+yy_zoom_bruto = fac_yy[: max_zoom + 1]  # versao bruta com picos
 xy_zoom = fac_xy[: max_zoom + 1]
 
 def plotar_fac_sem_dc(lags, valores, titulo, cor, arquivo_saida):
@@ -140,6 +148,23 @@ plotar_fac_sem_dc(k_x, fac_xy, f"Correlacao Cruzada: {nome_x} x Bloco {nome_y}",
 plotar_fac_sem_dc(lags_zoom, xx_zoom, f"Autocorrelacao Zoom (0 a 250): {nome_x}", "red", pasta_passo3 / f"fac_{nome_x}_zoom.png")
 plotar_fac_sem_dc(lags_zoom, yy_zoom, f"Autocorrelacao Zoom (0 a 250): {nome_y}", "blue", pasta_passo3 / f"fac_{nome_y}_zoom.png")
 plotar_fac_sem_dc(lags_zoom, xy_zoom, f"Correlacao Cruzada Zoom (0 a 250): {nome_x} x Bloco {nome_y}", "purple", pasta_passo3 / "fac_cruzada_zoom.png")
+
+# Versao com picos e sobreposta salvas em extras
+plotar_fac_sem_dc(lags_zoom, yy_zoom_bruto, f"Autocorrelacao Zoom (com picos do GoP): {nome_y}", "blue", pasta_passo3_extras / f"fac_{nome_y}_zoom_com_picos.png")
+
+# grafico sobreposto em extras (picos + linha)
+plt.figure(figsize=(11, 5), dpi=120)
+plt.plot(lags_zoom, yy_zoom_bruto, color="lightblue", alpha=0.7, label="FAC com picos do GoP")
+plt.plot(lags_zoom, yy_zoom, color="blue", linewidth=1.5, label="Linha da FAC (suavizada / sem picos)")
+plt.axhline(0, color="black", linestyle="--", linewidth=0.8)
+plt.title(f"Autocorrelacao Zoom: {nome_y} (Picos vs Linha Suavizada)")
+plt.xlabel("Lag (k >= 0)")
+plt.ylabel("Coeficiente")
+plt.grid(True, linestyle="--", alpha=0.6)
+plt.legend()
+plt.tight_layout()
+plt.savefig(pasta_passo3_extras / f"fac_{nome_y}_zoom_sobreposto.png", dpi=150)
+plt.close()
 
 # 3 em 1 completo (salvo em extras)
 fig, axs = plt.subplots(3, 1, figsize=(11, 9), dpi=120)
@@ -183,6 +208,28 @@ axs[2].grid(True, linestyle="--", alpha=0.6)
 
 plt.tight_layout()
 plt.savefig(pasta_passo3_extras / "facs_3_em_1_zoom.png", dpi=150)
+plt.close()
+
+# 3 em 1 zoom com picos bruto (salvo em extras)
+fig_b, axs_b = plt.subplots(3, 1, figsize=(11, 9), dpi=120)
+axs_b[0].plot(lags_zoom, xx_zoom, color="red", linewidth=1.2)
+axs_b[0].axhline(0, color="black", linestyle="--", linewidth=0.8)
+axs_b[0].set_title(f"Autocorrelacao Zoom: {nome_x}")
+axs_b[0].grid(True, linestyle="--", alpha=0.6)
+
+axs_b[1].plot(lags_zoom, yy_zoom_bruto, color="blue", linewidth=1.2)
+axs_b[1].axhline(0, color="black", linestyle="--", linewidth=0.8)
+axs_b[1].set_title(f"Autocorrelacao Zoom: {nome_y} (com picos)")
+axs_b[1].grid(True, linestyle="--", alpha=0.6)
+
+axs_b[2].plot(lags_zoom, xy_zoom, color="purple", linewidth=1.2)
+axs_b[2].axhline(0, color="black", linestyle="--", linewidth=0.8)
+axs_b[2].set_title(f"Correlacao Cruzada Zoom: {nome_x} x Bloco {nome_y}")
+axs_b[2].set_xlabel("Lag (k >= 0)")
+axs_b[2].grid(True, linestyle="--", alpha=0.6)
+
+plt.tight_layout()
+plt.savefig(pasta_passo3_extras / "facs_3_em_1_zoom_com_picos.png", dpi=150)
 plt.close()
 
 # exporta PDF com zoom e varredura completa reunidos
