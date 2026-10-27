@@ -1,11 +1,13 @@
 from pathlib import Path
 import matplotlib.pyplot as plt
+from matplotlib.backends.backend_pdf import PdfPages
 import numpy as np
 
-pasta_dados = Path("dados")
+pasta_base = Path(__file__).resolve().parent
+pasta_dados = pasta_base / "dados"
 arquivos = sorted(pasta_dados.glob("*.txt"))
 
-pasta_passo3 = Path("resultados/passo3_facs")
+pasta_passo3 = pasta_base / "resultados" / "passo3_facs"
 pasta_passo3_extras = pasta_passo3 / "extras"
 pasta_passo3.mkdir(parents=True, exist_ok=True)
 pasta_passo3_extras.mkdir(parents=True, exist_ok=True)
@@ -89,9 +91,9 @@ plt.savefig(pasta_passo3_extras / "verificacao_pdf_bloco_mpeg4.png", dpi=150)
 plt.close()
 
 # =========================================================================
-# AUTOCORRELAÇÃO NORMALIZADA TIRANDO O NÍVEL DC (MÉDIA SUBTRAÍDA)
-# O nível DC é removido para que a curva meça a correlação das flutuações AC,
-# com pico = 1.0 no lag 0 e decaindo em direção a zero.
+# AUTOCORRELACAO NORMALIZADA TIRANDO O NIVEL DC (MEDIA SUBTRAIDA)
+# O nivel DC e removido para que a curva meca a correlacao das flutuacoes AC,
+# com pico = 1.0 no lag 0 e decaindo em direcao a zero.
 # =========================================================================
 x_c = x - np.mean(x)
 y_c = y - np.mean(y)
@@ -182,5 +184,59 @@ axs[2].grid(True, linestyle="--", alpha=0.6)
 plt.tight_layout()
 plt.savefig(pasta_passo3_extras / "facs_3_em_1_zoom.png", dpi=150)
 plt.close()
+
+# exporta PDF com zoom e varredura completa reunidos
+with PdfPages(pasta_passo3 / "FACs_StarTrek_Completo.pdf") as pdf:
+    # Pagina 1: Zoom (0 a 250)
+    fig1, axs1 = plt.subplots(3, 1, figsize=(10, 11), dpi=120)
+    fig1.suptitle("FACs - Zoom (0 a 250 amostras) [Nivel DC Removido]", fontsize=14, fontweight="bold")
+    axs1[0].plot(lags_zoom, xx_zoom, color="red", linewidth=1.1)
+    axs1[0].axhline(0, color="black", linestyle="--", linewidth=0.8)
+    axs1[0].set_title(f"Autocorrelacao Zoom: {nome_x}")
+    axs1[0].set_ylabel("Coeficiente")
+    axs1[0].grid(True, linestyle="--", alpha=0.6)
+
+    axs1[1].plot(lags_zoom, yy_zoom, color="blue", linewidth=1.1)
+    axs1[1].axhline(0, color="black", linestyle="--", linewidth=0.8)
+    axs1[1].set_title(f"Autocorrelacao Zoom: {nome_y}")
+    axs1[1].set_ylabel("Coeficiente")
+    axs1[1].grid(True, linestyle="--", alpha=0.6)
+
+    axs1[2].plot(lags_zoom, xy_zoom, color="purple", linewidth=1.1)
+    axs1[2].axhline(0, color="black", linestyle="--", linewidth=0.8)
+    axs1[2].set_title(f"Correlacao Cruzada Zoom: {nome_x} x Bloco {nome_y}")
+    axs1[2].set_xlabel("Lag (k >= 0)")
+    axs1[2].set_ylabel("Coeficiente")
+    axs1[2].grid(True, linestyle="--", alpha=0.6)
+
+    plt.tight_layout()
+    pdf.savefig(fig1)
+    plt.close(fig1)
+
+    # Pagina 2: Varredura Completa
+    fig2, axs2 = plt.subplots(3, 1, figsize=(10, 11), dpi=120)
+    fig2.suptitle("FACs - Varredura Completa [Nivel DC Removido]", fontsize=14, fontweight="bold")
+    axs2[0].plot(k_x, fac_xx, color="red", linewidth=0.8)
+    axs2[0].axhline(0, color="black", linestyle="--", linewidth=0.8)
+    axs2[0].set_title(f"Autocorrelacao Completa: {nome_x} (~26k)")
+    axs2[0].set_ylabel("Coeficiente")
+    axs2[0].grid(True, linestyle="--", alpha=0.6)
+
+    axs2[1].plot(k_y, fac_yy, color="blue", linewidth=0.8)
+    axs2[1].axhline(0, color="black", linestyle="--", linewidth=0.8)
+    axs2[1].set_title(f"Autocorrelacao Completa: {nome_y} (~90k)")
+    axs2[1].set_ylabel("Coeficiente")
+    axs2[1].grid(True, linestyle="--", alpha=0.6)
+
+    axs2[2].plot(k_x, fac_xy, color="purple", linewidth=0.8)
+    axs2[2].axhline(0, color="black", linestyle="--", linewidth=0.8)
+    axs2[2].set_title(f"Correlacao Cruzada Completa: {nome_x} x Bloco {nome_y} (~26k)")
+    axs2[2].set_xlabel("Lag (k >= 0)")
+    axs2[2].set_ylabel("Coeficiente")
+    axs2[2].grid(True, linestyle="--", alpha=0.6)
+
+    plt.tight_layout()
+    pdf.savefig(fig2)
+    plt.close(fig2)
 
 print("Passo 3 concluido.")

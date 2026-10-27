@@ -1,0 +1,16 @@
+Arquivo: startrek_h263_64k.txt
+Media:         1099.2799
+Variancia:     254130.0822
+Desvio Padrao: 504.1132
+VMQ:           1462546.3689
+RMS:           1209.3578
+-----------------------------------
+
+Arquivo: startrek_mpeg4_hq.txt
+Media:         1644.8076
+Variancia:     1454519.4996
+Desvio Padrao: 1206.0346
+VMQ:           4159911.5631
+RMS:           2039.5861
+-----------------------------------
+

@@ -1,0 +1,17 @@
+ITENS 5, 6 E 7: ESTACIONARIEDADE, DEP E COR DO ESPECTRO
+
+1. Estacionariedade (Item 5):
+- Estacionariedade Estrita (EE): Nao, porque a distribuicao conjunta varia ao longo do filme com a troca de cenas.
+- Estacionariedade em Sentido Amplo (ESA) global: Nao, porque a media oscila entre trechos calmos e de acao.
+- ESA local / ciclostacionario: Sim em aproximacao, dentro de tomadas continuas de cena devido a regularidade do GoP.
+
+2. Densidade Espectral de Potencia (Item 6):
+- Obtida a partir da autocorrelacao (Teorema de Wiener-Khinchin).
+- Concentracao dominante em baixas frequencias (media e correlacao de longo prazo) e raias discretas nos harmonicos do GoP.
+
+3. Cor do Espectro (Item 7):
+- startrek_h263_64k: alpha = 0.63 -> Intermediario entre Branco e Rosa (alpha ~ 0.7)
+- startrek_mpeg4_hq: alpha = 1.23 -> Colorido entre Rosa e Marrom/Vermelho (alpha ~ 1.3)
+
+Conclusao: Os sinais possuem espectro colorido com decaimento 1/f^alpha,
+situando-se na regiao entre ruido rosa e marrom.

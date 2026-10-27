@@ -3,13 +3,14 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy.stats import norm
 
-pasta_dados = Path("dados")
+pasta_base = Path(__file__).resolve().parent
+pasta_dados = pasta_base / "dados"
 arquivos = sorted(pasta_dados.glob("*.txt"))
 cores = ["red", "blue"]
 
-pasta_passo1 = Path("resultados/passo1_sinais_e_histogramas")
+pasta_passo1 = pasta_base / "resultados" / "passo1_sinais_e_histogramas"
 pasta_passo1_extras = pasta_passo1 / "extras"
-pasta_passo2 = Path("resultados/passo2_valores_esperados")
+pasta_passo2 = pasta_base / "resultados" / "passo2_valores_esperados"
 
 pasta_passo1.mkdir(parents=True, exist_ok=True)
 pasta_passo1_extras.mkdir(parents=True, exist_ok=True)

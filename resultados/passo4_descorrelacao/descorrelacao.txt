@@ -1,0 +1,24 @@
+PASSO 4: DESCORRELACAO 2-A-2 (MATRIZ DE COVARIANCIA)
+
+Sinal 1: startrek_h263_64k (N = 26192)
+Sinal 2: Bloco continuo de startrek_mpeg4_hq (k = 8992 a 35184)
+
+1. Matriz de covariancia original (K_Z):
+[[ 254139.7852   -2964.0226]
+ [  -2964.0226 1481204.8106]]
+
+Coeficiente de correlacao original (lag 0): -0.004831
+
+2. Autovalores (variancias das componentes):
+lambda_1 = 254132.6255
+lambda_2 = 1481211.9702
+
+3. Matriz modal Q (autovetores):
+[[-1.     -0.0024]
+ [-0.0024  1.    ]]
+
+4. Matriz de covariancia transformada (K_W = Q^T * K_Z * Q):
+[[ 254132.6255       0.    ]
+ [      0.     1481211.9702]]
+
+Coeficiente de correlacao resultante no lag 0: 9.2732e-19 (aproximadamente 0)

@@ -9,5 +9,4 @@ venv/
 dados/*.txt
 !dados/.gitkeep
 
-# Resultados gerados localmente
-resultados/
+

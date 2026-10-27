@@ -3,10 +3,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy import signal
 
-pasta_dados = Path("dados")
+pasta_base = Path(__file__).resolve().parent
+pasta_dados = pasta_base / "dados"
 arquivos = sorted(pasta_dados.glob("*.txt"))
 
-pasta_saida = Path("resultados/passo6_7_dep_e_espectro")
+pasta_saida = pasta_base / "resultados" / "passo6_7_dep_e_espectro"
 pasta_saida_extras = pasta_saida / "extras"
 pasta_saida.mkdir(parents=True, exist_ok=True)
 pasta_saida_extras.mkdir(parents=True, exist_ok=True)
