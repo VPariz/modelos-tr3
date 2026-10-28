@@ -1,10 +1,12 @@
 # Stochastic & Spectral Analysis of Encoded Video Signals
 
+[![Build & CI](https://github.com/VPariz/modelos-tr3/actions/workflows/ci.yml/badge.svg)](https://github.com/VPariz/modelos-tr3/actions/workflows/ci.yml)
 [![Python](https://img.shields.io/badge/Python-3.9%2B-3776AB?style=flat-square&logo=python&logoColor=white)](https://python.org)
 [![NumPy](https://img.shields.io/badge/NumPy-013243?style=flat-square&logo=numpy&logoColor=white)](https://numpy.org/)
 [![SciPy](https://img.shields.io/badge/SciPy-8CAAE6?style=flat-square&logo=scipy&logoColor=black)](https://scipy.org/)
 [![Matplotlib](https://img.shields.io/badge/Matplotlib-11557C?style=flat-square&logo=python&logoColor=white)](https://matplotlib.org/)
 [![Institution](https://img.shields.io/badge/IME-Electronics_Engineering-104911?style=flat-square)](https://ime.eb.mil.br/)
+[![License](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
 
 **Instituto Militar de Engenharia — IME**  
 **Field:** Statistical Signal Processing & Stochastic Systems  

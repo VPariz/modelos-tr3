@@ -1,12 +1,28 @@
+# Python bytecode
 __pycache__/
-*.pyc
+*.py[cod]
+*$py.class
+
+# Virtual environments
 .venv/
 venv/
+env/
+
+# IDE configurations
 .vscode/
 .idea/
+*.swp
+*.swo
 
-# Dados confidenciais
-dados/*.txt
+# Testing and coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Output directories
+resultados/
+*.log
+
+# Retain sample datasets
+!dados/*.txt
 !dados/.gitkeep
-
-
