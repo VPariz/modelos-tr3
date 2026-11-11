@@ -20,7 +20,6 @@ env/
 htmlcov/
 
 # Output directories
-resultados/
 *.log
 
 # Retain sample datasets
