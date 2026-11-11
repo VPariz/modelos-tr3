@@ -1,7 +1,7 @@
 from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
-from scipy.stats import norm
+from scipy.stats import norm, skew, kurtosis
 
 pasta_base = Path(__file__).resolve().parent
 pasta_dados = pasta_base / "dados"
@@ -17,6 +17,7 @@ pasta_passo1_extras.mkdir(parents=True, exist_ok=True)
 pasta_passo2.mkdir(parents=True, exist_ok=True)
 
 dados = {}
+arrays = {}
 
 # salva estatisticas pedidas no item 2
 with open(pasta_passo2 / "estatisticas.txt", "w", encoding="utf-8") as f_txt:
@@ -25,28 +26,35 @@ with open(pasta_passo2 / "estatisticas.txt", "w", encoding="utf-8") as f_txt:
             valores = [float(linha.strip()) for linha in f if linha.strip()]
 
         arr = np.array(valores)
+        arrays[arquivo.name] = arr
 
-        # media, variancia, desvio, vmq e rms
+        # media, variancia, desvio, vmq, rms, assimetria e curtose
         media = np.mean(arr)
         variancia = np.var(arr)
         desvio_padrao = np.std(arr)
         vmq = np.mean(arr**2)
         rms = np.sqrt(vmq)
+        assimetria = skew(arr)
+        curtose_pearson = kurtosis(arr, fisher=False)
 
-        print(f"\n{arquivo.name}:")
-        print(f"  Media:         {media:.4f}")
-        print(f"  Variancia:     {variancia:.4f}")
-        print(f"  Desvio Padrao: {desvio_padrao:.4f}")
-        print(f"  VMQ:           {vmq:.4f}")
-        print(f"  RMS:           {rms:.4f}")
+        print(f"\n{arquivo.name} (N = {len(arr)}):")
+        print(f"  Media:              {media:.4f}")
+        print(f"  Variancia:          {variancia:.4f}")
+        print(f"  Desvio Padrao:      {desvio_padrao:.4f}")
+        print(f"  VMQ E[X^2]:         {vmq:.4f}")
+        print(f"  RMS sqrt(VMQ):      {rms:.4f}")
+        print(f"  Assimetria (Skew):  {assimetria:.4f}")
+        print(f"  Curtose (Pearson):  {curtose_pearson:.4f} (Gaussiana = 3.0)")
 
-        f_txt.write(f"Arquivo: {arquivo.name}\n")
-        f_txt.write(f"Media:         {media:.4f}\n")
-        f_txt.write(f"Variancia:     {variancia:.4f}\n")
-        f_txt.write(f"Desvio Padrao: {desvio_padrao:.4f}\n")
-        f_txt.write(f"VMQ:           {vmq:.4f}\n")
-        f_txt.write(f"RMS:           {rms:.4f}\n")
-        f_txt.write("-" * 35 + "\n\n")
+        f_txt.write(f"Arquivo: {arquivo.name} (N = {len(arr)} amostras)\n")
+        f_txt.write(f"Media E[X]:         {media:.4f}\n")
+        f_txt.write(f"Variancia Var(X):   {variancia:.4f}\n")
+        f_txt.write(f"Desvio Padrao:      {desvio_padrao:.4f}\n")
+        f_txt.write(f"VMQ E[X^2]:         {vmq:.4f}\n")
+        f_txt.write(f"RMS sqrt(E[X^2]):   {rms:.4f}\n")
+        f_txt.write(f"Assimetria (Skew):  {assimetria:.4f}\n")
+        f_txt.write(f"Curtose (Pearson):  {curtose_pearson:.4f} (Ref. Gaussiana = 3.0000)\n")
+        f_txt.write("-" * 48 + "\n\n")
 
         dados[arquivo.name] = (valores, cor)
 
@@ -91,6 +99,29 @@ with open(pasta_passo2 / "estatisticas.txt", "w", encoding="utf-8") as f_txt:
         plt.tight_layout()
         plt.savefig(pasta_passo1_extras / f"histograma_simples_{arquivo.stem}.png", dpi=150)
         plt.close()
+
+    # Momentos conjuntos / cruzados entre as duas sequencias (com bloco representativo N = 26192)
+    nomes_arq = list(arrays.keys())
+    if len(nomes_arq) == 2:
+        x_h263 = arrays[nomes_arq[0]]
+        y_mpeg_full = arrays[nomes_arq[1]]
+        N = len(x_h263)
+        # Bloco representativo otimo (k = 8992 a 35184)
+        k_ini = 8992
+        y_bloco = y_mpeg_full[k_ini : k_ini + N]
+
+        correlacao_xy = np.mean(x_h263 * y_bloco)
+        cov_xy = np.mean((x_h263 - np.mean(x_h263)) * (y_bloco - np.mean(y_bloco)))
+        rho_xy = cov_xy / (np.std(x_h263) * np.std(y_bloco))
+        vmq_diff = np.mean((x_h263 - y_bloco) ** 2)
+
+        f_txt.write("ESTATISTICAS CONJUNTAS ENTRE AS DUAS SEQUENCIAS (N = 26192)\n")
+        f_txt.write(f"(Bloco MPEG-4 representativo: amostras {k_ini} a {k_ini + N})\n")
+        f_txt.write(f"Correlacao Cruzada R_XY(0) = E[X*Y]:       {correlacao_xy:.4f}\n")
+        f_txt.write(f"Covariancia Cruzada K_XY = Cov(X,Y):       {cov_xy:.4f}\n")
+        f_txt.write(f"Coeficiente de Correlacao rho_XY:          {rho_xy:.6f}\n")
+        f_txt.write(f"VMQ da Diferenca E[(X - Y)^2]:             {vmq_diff:.4f}\n")
+        f_txt.write("-" * 48 + "\n")
 
 # comparativo no tempo sobreposto
 plt.figure(figsize=(15, 6), dpi=120)

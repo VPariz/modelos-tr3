@@ -1,16 +1,27 @@
-Arquivo: startrek_h263_64k.txt
-Media:         1099.2799
-Variancia:     254130.0822
-Desvio Padrao: 504.1132
-VMQ:           1462546.3689
-RMS:           1209.3578
------------------------------------
+Arquivo: startrek_h263_64k.txt (N = 26192 amostras)
+Media E[X]:         1099.2799
+Variancia Var(X):   254130.0822
+Desvio Padrao:      504.1132
+VMQ E[X^2]:         1462546.3689
+RMS sqrt(E[X^2]):   1209.3578
+Assimetria (Skew):  1.0607
+Curtose (Pearson):  6.8223 (Ref. Gaussiana = 3.0000)
+------------------------------------------------
 
-Arquivo: startrek_mpeg4_hq.txt
-Media:         1644.8076
-Variancia:     1454519.4996
-Desvio Padrao: 1206.0346
-VMQ:           4159911.5631
-RMS:           2039.5861
------------------------------------
+Arquivo: startrek_mpeg4_hq.txt (N = 89998 amostras)
+Media E[X]:         1644.8076
+Variancia Var(X):   1454519.4996
+Desvio Padrao:      1206.0346
+VMQ E[X^2]:         4159911.5631
+RMS sqrt(E[X^2]):   2039.5861
+Assimetria (Skew):  1.7867
+Curtose (Pearson):  7.1856 (Ref. Gaussiana = 3.0000)
+------------------------------------------------
 
+ESTATISTICAS CONJUNTAS ENTRE AS DUAS SEQUENCIAS (N = 26192)
+(Bloco MPEG-4 representativo: amostras 8992 a 35184)
+Correlacao Cruzada R_XY(0) = E[X*Y]:       1800524.7502
+Covariancia Cruzada K_XY = Cov(X,Y):       -2963.9094
+Coeficiente de Correlacao rho_XY:          -0.004831
+VMQ da Diferenca E[(X - Y)^2]:             2034243.5284
+------------------------------------------------

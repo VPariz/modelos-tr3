@@ -75,7 +75,7 @@ centro = N - 1
 # grava memoria de calculo
 np.set_printoptions(suppress=True, precision=4)
 texto = (
-    "PASSO 4: DESCORRELACAO 2-A-2 (MATRIZ DE COVARIANCIA)\n\n"
+    "PASSO 4 E 5: DESCORRELACAO 2-A-2 (MATRIZ DE COVARIANCIA) E FACs DESCORRELACIONADAS\n\n"
     f"Sinal 1: {nome_x} (N = {N})\n"
     f"Sinal 2: Bloco continuo de {nome_y} (k = {melhor_k} a {melhor_k + N})\n\n"
     "1. Matriz de covariancia original (K_Z):\n"
@@ -196,11 +196,54 @@ plt.tight_layout()
 plt.savefig(pasta_passo4_extras / "descorrelacao_dispersao.png", dpi=150)
 plt.close()
 
-# exporta PDF com correlacoes cruzadas e dispersao reunidas
+# ITEM 5: FACs individuais dos sinais descorrelacionados W1 e W2
+def calcular_fac_positiva(s, max_lags=4000):
+    s_c = s - np.mean(s)
+    energia = np.sum(s_c**2)
+    n_fft = 1 << (2 * len(s_c) - 1).bit_length()
+    S_f = np.fft.rfft(s_c, n=n_fft)
+    r_full = np.fft.irfft(S_f * np.conj(S_f), n=n_fft)[:len(s_c)]
+    r_norm = r_full / energia
+    return np.arange(max_lags), r_norm[:max_lags]
+
+max_lags_fac = 4000
+lags_w, fac_w1 = calcular_fac_positiva(w1, max_lags_fac)
+_, fac_w2_bruta = calcular_fac_positiva(w2, max_lags_fac)
+
+# Envoltoria suavizada nos multiplos do GoP (12 quadros) para W2
+gop = 12
+lags_gop = lags_w[::gop]
+fac_w2_suav = fac_w2_bruta[::gop]
+
+plt.figure(figsize=(10, 4.5), dpi=120)
+plt.plot(lags_w, fac_w1, color="red", linewidth=1.0, label="FAC de W1[n] (Descorrelacionado 1)")
+plt.axhline(0, color="black", linestyle="--", linewidth=0.8)
+plt.title("Item 5 — FAC do Sinal Descorrelacionado W1[n]")
+plt.xlabel("Lag (k >= 0)")
+plt.ylabel("Autocorrelacao Normalizada")
+plt.grid(True, linestyle="--", alpha=0.6)
+plt.legend()
+plt.tight_layout()
+plt.savefig(pasta_passo4 / "fac_descorrelacionado_w1.png", dpi=150)
+plt.close()
+
+plt.figure(figsize=(10, 4.5), dpi=120)
+plt.plot(lags_gop, fac_w2_suav, color="blue", linewidth=1.2, label="FAC de W2[n] (Envoltoria GoP)")
+plt.axhline(0, color="black", linestyle="--", linewidth=0.8)
+plt.title("Item 5 — FAC do Sinal Descorrelacionado W2[n]")
+plt.xlabel("Lag (k >= 0)")
+plt.ylabel("Autocorrelacao Normalizada")
+plt.grid(True, linestyle="--", alpha=0.6)
+plt.legend()
+plt.tight_layout()
+plt.savefig(pasta_passo4 / "fac_descorrelacionado_w2.png", dpi=150)
+plt.close()
+
+# exporta PDF com correlacoes cruzadas, FACs individuais (Item 5) e dispersao reunidas
 with PdfPages(pasta_passo4 / "Descorrelacao_StarTrek_Completo.pdf") as pdf:
     # Pagina 1: Correlacao Cruzada Antes vs Depois (Zoom)
     fig1, axs1 = plt.subplots(2, 1, figsize=(10, 8), dpi=120)
-    fig1.suptitle("Descorrelacao 2-a-2: Correlacao Cruzada Antes vs Depois", fontsize=14, fontweight="bold")
+    fig1.suptitle("Item 4 — Descorrelacao 2-a-2: Correlacao Cruzada Antes vs Depois", fontsize=14, fontweight="bold")
     axs1[0].plot(lags_zoom_pos, antes_zoom_pos, color="purple", linewidth=1.2)
     axs1[0].axhline(0, color="black", linestyle="--", linewidth=0.8)
     axs1[0].plot(0, r_antes[centro], "ro", label=f"Lag 0: {r_antes[centro]:.4f}")
@@ -222,7 +265,29 @@ with PdfPages(pasta_passo4 / "Descorrelacao_StarTrek_Completo.pdf") as pdf:
     pdf.savefig(fig1)
     plt.close(fig1)
 
-    # Pagina 2: Nuvem de Pontos (Dispersao Z1,Z2 vs W1,W2)
+    # Pagina 2: Item 5 - FACs individuais dos sinais descorrelacionados W1 e W2
+    fig3, axs3 = plt.subplots(2, 1, figsize=(10, 8), dpi=120)
+    fig3.suptitle("Item 5 — FACs Individuais dos Sinais Descorrelacionados (W1 e W2)", fontsize=14, fontweight="bold")
+    axs3[0].plot(lags_w, fac_w1, color="red", linewidth=1.0, label="W1[n]")
+    axs3[0].axhline(0, color="black", linestyle="--", linewidth=0.8)
+    axs3[0].set_title("FAC do Sinal Descorrelacionado W1[n]")
+    axs3[0].set_ylabel("Autocorrelacao")
+    axs3[0].grid(True, linestyle="--", alpha=0.6)
+    axs3[0].legend(loc="upper right")
+
+    axs3[1].plot(lags_gop, fac_w2_suav, color="blue", linewidth=1.2, label="W2[n] (Envoltoria GoP)")
+    axs3[1].axhline(0, color="black", linestyle="--", linewidth=0.8)
+    axs3[1].set_title("FAC do Sinal Descorrelacionado W2[n]")
+    axs3[1].set_xlabel("Lag (k >= 0)")
+    axs3[1].set_ylabel("Autocorrelacao")
+    axs3[1].grid(True, linestyle="--", alpha=0.6)
+    axs3[1].legend(loc="upper right")
+
+    plt.tight_layout()
+    pdf.savefig(fig3)
+    plt.close(fig3)
+
+    # Pagina 3: Nuvem de Pontos (Dispersao Z1,Z2 vs W1,W2)
     fig2, axs2 = plt.subplots(1, 2, figsize=(12, 5), dpi=120)
     fig2.suptitle("Dispersao no Plano: Antes (Z1, Z2) vs Depois (W1, W2)", fontsize=14, fontweight="bold")
     axs2[0].scatter(Z[0, ::passo], Z[1, ::passo], s=4, alpha=0.3, color="red")
@@ -241,4 +306,4 @@ with PdfPages(pasta_passo4 / "Descorrelacao_StarTrek_Completo.pdf") as pdf:
     pdf.savefig(fig2)
     plt.close(fig2)
 
-print("Passo 4 concluido.")
+print("Passo 4 e 5 concluidos.")

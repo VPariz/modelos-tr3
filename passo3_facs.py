@@ -1,9 +1,10 @@
-from pathlib import Path
+import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
-import numpy as np
-from scipy.interpolate import interp1d
+from scipy import signal
+from pathlib import Path
 
+# Definicao de pastas
 pasta_base = Path(__file__).resolve().parent
 pasta_dados = pasta_base / "dados"
 arquivos = sorted(pasta_dados.glob("*.txt"))
@@ -13,24 +14,23 @@ pasta_passo3_extras = pasta_passo3 / "extras"
 pasta_passo3.mkdir(parents=True, exist_ok=True)
 pasta_passo3_extras.mkdir(parents=True, exist_ok=True)
 
-# le os dois arquivos (o menor vira x, o maior vira y)
+# Leitura dos sinais: menor e H.263, maior e MPEG-4
 sinais = [np.loadtxt(arq) for arq in arquivos]
 nomes = [arq.stem for arq in arquivos]
 ordem = np.argsort([len(s) for s in sinais])
 x, y = sinais[ordem[0]], sinais[ordem[1]]
 nome_x, nome_y = nomes[ordem[0]], nomes[ordem[1]]
 
-N = len(x)      # ~26k (H.263)
-N_y = len(y)    # ~90k (MPEG-4)
+N = len(x)      # ~26.192 (H.263)
+N_y = len(y)    # ~89.998 (MPEG-4)
 
-# valores esperados do sinal completo de 90k
-m_y = np.mean(y)
-v_y = np.var(y)
-s_y = np.std(y)
-vmq_y = np.mean(y**2)
-rms_y = np.sqrt(vmq_y)
+# Momentos globais de ambos os sinais
+m_x, v_x, s_x, vmq_x = np.mean(x), np.var(x), np.std(x), np.mean(x**2)
+m_y, v_y, s_y, vmq_y = np.mean(y), np.var(y), np.std(y), np.mean(y**2)
 
-# varredura para achar o bloco de tamanho N com media e desvio mais proximos do global
+# =========================================================================
+# SELECAO DO BLOCO CONTINUO DE MPEG-4 CASANDO MEDIA E DESVIO
+# =========================================================================
 melhor_k = 0
 menor_erro = float("inf")
 for k_cand in range(0, N_y - N + 1, 10):
@@ -42,7 +42,7 @@ for k_cand in range(0, N_y - N + 1, 10):
         menor_erro = erro
         melhor_k = k_cand
 
-# refinamento passo 1 ao redor do melhor_k
+# Refinamento fino
 k_ini = max(0, melhor_k - 30)
 k_fim = min(N_y - N + 1, melhor_k + 30)
 for k_cand in range(k_ini, k_fim):
@@ -55,12 +55,7 @@ for k_cand in range(k_ini, k_fim):
         melhor_k = k_cand
 
 y_bloco = y[melhor_k : melhor_k + N]
-
-m_b = np.mean(y_bloco)
-v_b = np.var(y_bloco)
-s_b = np.std(y_bloco)
-vmq_b = np.mean(y_bloco**2)
-rms_b = np.sqrt(vmq_b)
+m_b, v_b, s_b, vmq_b, rms_b = np.mean(y_bloco), np.var(y_bloco), np.std(y_bloco), np.mean(y_bloco**2), np.sqrt(np.mean(y_bloco**2))
 
 relatorio_bloco = (
     f"Bloco selecionado do MPEG-4: k = {melhor_k} ate {melhor_k + N} (N = {N})\n\n"
@@ -70,220 +65,264 @@ relatorio_bloco = (
     f"{'Variancia':<15} | {v_y:<18.4f} | {v_b:<18.4f} | {abs(v_b - v_y)/v_y*100:>8.2f} %\n"
     f"{'Desvio Padrao':<15} | {s_y:<18.4f} | {s_b:<18.4f} | {abs(s_b - s_y)/s_y*100:>8.2f} %\n"
     f"{'VMQ':<15} | {vmq_y:<18.4f} | {vmq_b:<18.4f} | {abs(vmq_b - vmq_y)/vmq_y*100:>8.2f} %\n"
-    f"{'RMS':<15} | {rms_y:<18.4f} | {rms_b:<18.4f} | {abs(rms_b - rms_y)/rms_y*100:>8.2f} %\n"
+    f"{'RMS':<15} | {np.sqrt(vmq_y):<18.4f} | {rms_b:<18.4f} | {abs(rms_b - np.sqrt(vmq_y))/np.sqrt(vmq_y)*100:>8.2f} %\n"
 )
-
 print(relatorio_bloco)
 
 with open(pasta_passo3 / "comparacao_valores_esperados_bloco.txt", "w", encoding="utf-8") as f:
     f.write(relatorio_bloco)
 
-# histograma sobreposto em extras
-plt.figure(figsize=(10, 5), dpi=120)
-plt.hist(y, bins=150, density=True, color="blue", alpha=0.45, label=f"MPEG-4 Completo [m={m_y:.1f}, s={s_y:.1f}]")
-plt.hist(y_bloco, bins=150, density=True, histtype="step", color="red", linewidth=1.8, label=f"MPEG-4 Bloco Cortado [m={m_b:.1f}, s={s_b:.1f}]")
-plt.title("Verificacao da PDF: MPEG-4 Original vs Bloco Cortado")
-plt.xlabel("Valor")
-plt.ylabel("Densidade")
-plt.grid(True, linestyle="--", alpha=0.6)
-plt.legend()
-plt.tight_layout()
-plt.savefig(pasta_passo3_extras / "verificacao_pdf_bloco_mpeg4.png", dpi=150)
-plt.close()
-
 # =========================================================================
-# AUTOCORRELACAO NORMALIZADA TIRANDO O NIVEL DC (MEDIA SUBTRAIDA)
-# O nivel DC e removido para que a curva meca a correlacao das flutuacoes AC,
-# com pico = 1.0 no lag 0 e decaindo em direcao a zero.
+# 1. AUTOCORRELACAO NORMALIZADA MANTENDO MEDIA E VARIANCIA (COM NIVEL DC)
+# Teoria (Leon-Garcia, Papoulis, Profa. Rosangela):
+# R_X[k] = E[X[n]X[n+k]], com R_X[0] = E[X^2] = VMQ = sigma^2 + mu^2
+# Normalizada por VMQ: r_X[k] = R_X[k] / R_X[0]
+#   - Lag 0: r_X[0] = 1.0 (potencia total normalizada)
+#   - Lag infinito: r_X[inf] = mu^2 / VMQ (potencia DC)
+#   - Variacao AC: sigma^2 / VMQ
 # =========================================================================
-x_c = x - np.mean(x)
-y_c = y - np.mean(y)
-y_bloco_c = y_bloco - np.mean(y_bloco)
-
 k_x = np.arange(N)
 k_y = np.arange(N_y)
 
-# Estimador de autocovariancia normalizado pelo pico em k=0
-r_xx = np.correlate(x_c, x_c, mode="full")[N - 1 :] / (N - k_x)
-fac_xx = r_xx / r_xx[0]
+# Estimador de autocovariancia/autocorrelacao biased (padrao xcorr)
+rx_biased = signal.correlate(x, x, mode="full", method="fft")[N - 1 :] / N
+fac_x_dc = rx_biased / rx_biased[0]
 
-r_yy = np.correlate(y_c, y_c, mode="full")[N_y - 1 :] / (N_y - k_y)
-fac_yy = r_yy / r_yy[0]
+ry_biased = signal.correlate(y, y, mode="full", method="fft")[N_y - 1 :] / N_y
+fac_y_dc = ry_biased / ry_biased[0]
 
-r_xy = np.correlate(x_c, y_bloco_c, mode="full")[N - 1 :] / (N - k_x)
-fac_xy = r_xy / np.sqrt(r_xx[0] * (np.var(y_bloco)))
+# Correlacao cruzada com nivel DC mantido
+ry_bloco_biased0 = np.mean(y_bloco**2)
+rxy_biased = signal.correlate(x, y_bloco, mode="full", method="fft")[N - 1 :] / N
+fac_xy_dc = rxy_biased / np.sqrt(rx_biased[0] * ry_bloco_biased0)
 
-# Linha da autocorrelacao sem picos e vales (envoltoria dos picos do GoP a cada 12 quadros)
-# Conforme orientacao da professora para obter uma curva continua suave
-picos_k = np.arange(0, N_y, 12)
-f_env = interp1d(picos_k, fac_yy[picos_k], kind="linear", fill_value="extrapolate")
-fac_yy_suave = f_env(k_y)
+# =========================================================================
+# 2. VERSAO CENTRADA NA MEDIA (AUTOCOVARIANCIA / COEFICIENTE DE CORRELACAO)
+# rho_X[k] = K_X[k] / sigma^2, com rho_X[0] = 1.0 e decaimento para zero
+# =========================================================================
+x_c = x - m_x
+y_c = y - m_y
+y_bloco_c = y_bloco - m_b
 
-# zooms positivos (0 a 250)
+rxc_biased = signal.correlate(x_c, x_c, mode="full", method="fft")[N - 1 :] / N
+fac_x_ac = rxc_biased / rxc_biased[0]
+
+ryc_biased = signal.correlate(y_c, y_c, mode="full", method="fft")[N_y - 1 :] / N_y
+fac_y_ac = ryc_biased / ryc_biased[0]
+
+rxyc_biased = signal.correlate(x_c, y_bloco_c, mode="full", method="fft")[N - 1 :] / N
+fac_xy_ac = rxyc_biased / np.sqrt(rxc_biased[0] * np.var(y_bloco))
+
+# Zooms positivos (0 a 250)
 max_zoom = 250
 lags_zoom = np.arange(0, max_zoom + 1)
-xx_zoom = fac_xx[: max_zoom + 1]
-yy_zoom = fac_yy_suave[: max_zoom + 1] # linha sem picos e vales
-yy_zoom_bruto = fac_yy[: max_zoom + 1]  # versao bruta com picos
-xy_zoom = fac_xy[: max_zoom + 1]
 
-def plotar_fac_sem_dc(lags, valores, titulo, cor, arquivo_saida):
+dc_nivel_x = m_x**2 / vmq_x
+dc_nivel_y = m_y**2 / vmq_y
+
+def plotar_fac(lags, valores, titulo, ylabel, cor, arquivo_saida, linha_dc=None):
     plt.figure(figsize=(11, 5), dpi=120)
-    plt.plot(lags, valores, color=cor, linewidth=1.0)
-    plt.axhline(0, color="black", linestyle="--", linewidth=0.8)
+    plt.plot(lags, valores, color=cor, linewidth=1.1)
+    if linha_dc is not None:
+        plt.axhline(linha_dc, color="black", linestyle="--", linewidth=0.8,
+                    label=f"Nivel DC: $\\mu^2 / \\mathrm{{VMQ}} = {linha_dc:.4f}$")
+        plt.legend(loc="upper right")
+    else:
+        plt.axhline(0, color="black", linestyle="--", linewidth=0.8)
     plt.title(titulo)
     plt.xlabel("Lag (k >= 0)")
-    plt.ylabel("Coeficiente")
+    plt.ylabel(ylabel)
     plt.grid(True, linestyle="--", alpha=0.6)
     plt.tight_layout()
     plt.savefig(arquivo_saida, dpi=150)
     plt.close()
 
-# 1. Graficos Principais (normalizados sem nivel DC - varredura completa)
-plotar_fac_sem_dc(k_x, fac_xx, f"Autocorrelacao: {nome_x}", "red", pasta_passo3 / f"fac_{nome_x}_completa.png")
-plotar_fac_sem_dc(k_y, fac_yy, f"Autocorrelacao: {nome_y}", "blue", pasta_passo3 / f"fac_{nome_y}_completa.png")
-plotar_fac_sem_dc(k_x, fac_xy, f"Correlacao Cruzada: {nome_x} x Bloco {nome_y}", "purple", pasta_passo3 / "fac_cruzada_completa.png")
+# ---------------------------------------------------------
+# GRAFICOS PRINCIPAIS: NORMALIZADOS COM NIVEL DC (PRESERVANDO MEDIA E VARIANCIA)
+# ---------------------------------------------------------
+# 1. Varredura Completa
+plotar_fac(k_x, fac_x_dc, f"Autocorrelacao Completa: {nome_x} (~26k)", "r_{XX}(k)", "red",
+           pasta_passo3 / f"fac_{nome_x}_completa.png", linha_dc=dc_nivel_x)
+plotar_fac(k_y, fac_y_dc, f"Autocorrelacao Completa: {nome_y} (~90k)", "r_{YY}(k)", "blue",
+           pasta_passo3 / f"fac_{nome_y}_completa.png", linha_dc=dc_nivel_y)
+plotar_fac(k_x, fac_xy_dc, f"Correlacao Cruzada Completa: {nome_x} x Bloco {nome_y} (~26k)", "r_{XY}(k)", "purple",
+           pasta_passo3 / "fac_cruzada_completa.png")
 
-# 2. Graficos Principais (normalizados sem nivel DC - zoom 0 a 250)
-plotar_fac_sem_dc(lags_zoom, xx_zoom, f"Autocorrelacao Zoom (0 a 250): {nome_x}", "red", pasta_passo3 / f"fac_{nome_x}_zoom.png")
-plotar_fac_sem_dc(lags_zoom, yy_zoom, f"Autocorrelacao Zoom (0 a 250): {nome_y}", "blue", pasta_passo3 / f"fac_{nome_y}_zoom.png")
-plotar_fac_sem_dc(lags_zoom, xy_zoom, f"Correlacao Cruzada Zoom (0 a 250): {nome_x} x Bloco {nome_y}", "purple", pasta_passo3 / "fac_cruzada_zoom.png")
+# 2. Zooms Positivos (0 a 250)
+plotar_fac(lags_zoom, fac_x_dc[:max_zoom + 1], f"Autocorrelacao Zoom (0 a 250): {nome_x} [Nivel DC Mantido]",
+           "r_{XX}(k)", "red", pasta_passo3 / f"fac_{nome_x}_zoom.png", linha_dc=dc_nivel_x)
+plotar_fac(lags_zoom, fac_y_dc[:max_zoom + 1], f"Autocorrelacao Zoom (0 a 250): {nome_y} [Preservando Media e Variancia]",
+           "r_{YY}(k)", "blue", pasta_passo3 / f"fac_{nome_y}_zoom.png", linha_dc=dc_nivel_y)
+plotar_fac(lags_zoom, fac_xy_dc[:max_zoom + 1], f"Correlacao Cruzada Zoom (0 a 250): {nome_x} x Bloco {nome_y}",
+           "r_{XY}(k)", "purple", pasta_passo3 / "fac_cruzada_zoom.png")
 
-# Versao com picos e sobreposta salvas em extras
-plotar_fac_sem_dc(lags_zoom, yy_zoom_bruto, f"Autocorrelacao Zoom (com picos do GoP): {nome_y}", "blue", pasta_passo3_extras / f"fac_{nome_y}_zoom_com_picos.png")
-
-# grafico sobreposto em extras (picos + linha)
-plt.figure(figsize=(11, 5), dpi=120)
-plt.plot(lags_zoom, yy_zoom_bruto, color="lightblue", alpha=0.7, label="FAC com picos do GoP")
-plt.plot(lags_zoom, yy_zoom, color="blue", linewidth=1.5, label="Linha da FAC (suavizada / sem picos)")
-plt.axhline(0, color="black", linestyle="--", linewidth=0.8)
-plt.title(f"Autocorrelacao Zoom: {nome_y} (Picos vs Linha Suavizada)")
-plt.xlabel("Lag (k >= 0)")
-plt.ylabel("Coeficiente")
-plt.grid(True, linestyle="--", alpha=0.6)
-plt.legend()
-plt.tight_layout()
-plt.savefig(pasta_passo3_extras / f"fac_{nome_y}_zoom_sobreposto.png", dpi=150)
-plt.close()
-
-# 3 em 1 completo (salvo em extras)
+# ---------------------------------------------------------
+# GRAFICOS 3 EM 1 (COM NIVEL DC) - PRINCIPAL
+# ---------------------------------------------------------
+# 3 em 1 Zoom
 fig, axs = plt.subplots(3, 1, figsize=(11, 9), dpi=120)
-axs[0].plot(k_x, fac_xx, color="red", linewidth=0.8)
-axs[0].axhline(0, color="black", linestyle="--", linewidth=0.8)
-axs[0].set_title(f"Autocorrelacao: {nome_x}")
+axs[0].plot(lags_zoom, fac_x_dc[:max_zoom + 1], color="red", linewidth=1.2)
+axs[0].axhline(dc_nivel_x, color="darkred", linestyle="--", linewidth=0.8, label=f"Nivel DC ({dc_nivel_x:.4f})")
+axs[0].set_title(f"Autocorrelacao Zoom: {nome_x} (Nivel DC Mantido)")
+axs[0].set_ylabel("r_{XX}(k)")
 axs[0].grid(True, linestyle="--", alpha=0.6)
+axs[0].legend(loc="upper right")
 
-axs[1].plot(k_y, fac_yy, color="blue", linewidth=0.8)
-axs[1].axhline(0, color="black", linestyle="--", linewidth=0.8)
-axs[1].set_title(f"Autocorrelacao: {nome_y}")
+axs[1].plot(lags_zoom, fac_y_dc[:max_zoom + 1], color="blue", linewidth=1.2)
+axs[1].axhline(dc_nivel_y, color="darkblue", linestyle="--", linewidth=0.8, label=f"Nivel DC ({dc_nivel_y:.4f})")
+axs[1].set_title(f"Autocorrelacao Zoom: {nome_y} (Preservando Media e Variancia - Picos do GoP N=12)")
+axs[1].set_ylabel("r_{YY}(k)")
 axs[1].grid(True, linestyle="--", alpha=0.6)
+axs[1].legend(loc="upper right")
 
-axs[2].plot(k_x, fac_xy, color="purple", linewidth=0.8)
-axs[2].axhline(0, color="black", linestyle="--", linewidth=0.8)
-axs[2].set_title(f"Correlacao Cruzada: {nome_x} x Bloco {nome_y}")
-axs[2].set_xlabel("Lag (k >= 0)")
-axs[2].grid(True, linestyle="--", alpha=0.6)
-
-plt.tight_layout()
-plt.savefig(pasta_passo3_extras / "facs_3_em_1_completa.png", dpi=150)
-plt.close()
-
-# 3 em 1 zoom (salvo em extras)
-fig, axs = plt.subplots(3, 1, figsize=(11, 9), dpi=120)
-axs[0].plot(lags_zoom, xx_zoom, color="red", linewidth=1.2)
-axs[0].axhline(0, color="black", linestyle="--", linewidth=0.8)
-axs[0].set_title(f"Autocorrelacao Zoom: {nome_x}")
-axs[0].grid(True, linestyle="--", alpha=0.6)
-
-axs[1].plot(lags_zoom, yy_zoom, color="blue", linewidth=1.2)
-axs[1].axhline(0, color="black", linestyle="--", linewidth=0.8)
-axs[1].set_title(f"Autocorrelacao Zoom: {nome_y}")
-axs[1].grid(True, linestyle="--", alpha=0.6)
-
-axs[2].plot(lags_zoom, xy_zoom, color="purple", linewidth=1.2)
-axs[2].axhline(0, color="black", linestyle="--", linewidth=0.8)
+axs[2].plot(lags_zoom, fac_xy_dc[:max_zoom + 1], color="purple", linewidth=1.2)
 axs[2].set_title(f"Correlacao Cruzada Zoom: {nome_x} x Bloco {nome_y}")
 axs[2].set_xlabel("Lag (k >= 0)")
+axs[2].set_ylabel("r_{XY}(k)")
 axs[2].grid(True, linestyle="--", alpha=0.6)
 
 plt.tight_layout()
 plt.savefig(pasta_passo3_extras / "facs_3_em_1_zoom.png", dpi=150)
 plt.close()
 
-# 3 em 1 zoom com picos bruto (salvo em extras)
-fig_b, axs_b = plt.subplots(3, 1, figsize=(11, 9), dpi=120)
-axs_b[0].plot(lags_zoom, xx_zoom, color="red", linewidth=1.2)
-axs_b[0].axhline(0, color="black", linestyle="--", linewidth=0.8)
-axs_b[0].set_title(f"Autocorrelacao Zoom: {nome_x}")
-axs_b[0].grid(True, linestyle="--", alpha=0.6)
+# 3 em 1 Completo
+fig, axs = plt.subplots(3, 1, figsize=(11, 9), dpi=120)
+axs[0].plot(k_x, fac_x_dc, color="red", linewidth=0.8)
+axs[0].axhline(dc_nivel_x, color="darkred", linestyle="--", linewidth=0.8, label=f"Nivel DC ({dc_nivel_x:.4f})")
+axs[0].set_title(f"Autocorrelacao Completa: {nome_x} (~26k)")
+axs[0].set_ylabel("r_{XX}(k)")
+axs[0].grid(True, linestyle="--", alpha=0.6)
+axs[0].legend(loc="upper right")
 
-axs_b[1].plot(lags_zoom, yy_zoom_bruto, color="blue", linewidth=1.2)
-axs_b[1].axhline(0, color="black", linestyle="--", linewidth=0.8)
-axs_b[1].set_title(f"Autocorrelacao Zoom: {nome_y} (com picos)")
-axs_b[1].grid(True, linestyle="--", alpha=0.6)
+axs[1].plot(k_y, fac_y_dc, color="blue", linewidth=0.8)
+axs[1].axhline(dc_nivel_y, color="darkblue", linestyle="--", linewidth=0.8, label=f"Nivel DC ({dc_nivel_y:.4f})")
+axs[1].set_title(f"Autocorrelacao Completa: {nome_y} (~90k)")
+axs[1].set_ylabel("r_{YY}(k)")
+axs[1].grid(True, linestyle="--", alpha=0.6)
+axs[1].legend(loc="upper right")
 
-axs_b[2].plot(lags_zoom, xy_zoom, color="purple", linewidth=1.2)
-axs_b[2].axhline(0, color="black", linestyle="--", linewidth=0.8)
-axs_b[2].set_title(f"Correlacao Cruzada Zoom: {nome_x} x Bloco {nome_y}")
-axs_b[2].set_xlabel("Lag (k >= 0)")
-axs_b[2].grid(True, linestyle="--", alpha=0.6)
+axs[2].plot(k_x, fac_xy_dc, color="purple", linewidth=0.8)
+axs[2].set_title(f"Correlacao Cruzada Completa: {nome_x} x Bloco {nome_y} (~26k)")
+axs[2].set_xlabel("Lag (k >= 0)")
+axs[2].set_ylabel("r_{XY}(k)")
+axs[2].grid(True, linestyle="--", alpha=0.6)
 
 plt.tight_layout()
-plt.savefig(pasta_passo3_extras / "facs_3_em_1_zoom_com_picos.png", dpi=150)
+plt.savefig(pasta_passo3_extras / "facs_3_em_1_completa.png", dpi=150)
 plt.close()
 
-# exporta PDF com zoom e varredura completa reunidos
+# ---------------------------------------------------------
+# GRAFICOS EXTRAS: VERSAO SEM NIVEL DC (AUTOCOVARIANCIA PURA AC)
+# ---------------------------------------------------------
+fig, axs = plt.subplots(3, 1, figsize=(11, 9), dpi=120)
+axs[0].plot(lags_zoom, fac_x_ac[:max_zoom + 1], color="red", linewidth=1.2)
+axs[0].axhline(0, color="black", linestyle="--", linewidth=0.8)
+axs[0].set_title(f"Autocovariancia Zoom (Sem DC): {nome_x}")
+axs[0].set_ylabel("\\rho_{XX}(k)")
+axs[0].grid(True, linestyle="--", alpha=0.6)
+
+axs[1].plot(lags_zoom, fac_y_ac[:max_zoom + 1], color="blue", linewidth=1.2)
+axs[1].axhline(0, color="black", linestyle="--", linewidth=0.8)
+axs[1].set_title(f"Autocovariancia Zoom (Sem DC): {nome_y}")
+axs[1].set_ylabel("\\rho_{YY}(k)")
+axs[1].grid(True, linestyle="--", alpha=0.6)
+
+axs[2].plot(lags_zoom, fac_xy_ac[:max_zoom + 1], color="purple", linewidth=1.2)
+axs[2].axhline(0, color="black", linestyle="--", linewidth=0.8)
+axs[2].set_title(f"Covariancia Cruzada Zoom (Sem DC): {nome_x} x Bloco {nome_y}")
+axs[2].set_xlabel("Lag (k >= 0)")
+axs[2].set_ylabel("\\rho_{XY}(k)")
+axs[2].grid(True, linestyle="--", alpha=0.6)
+
+plt.tight_layout()
+plt.savefig(pasta_passo3_extras / "facs_3_em_1_zoom_sem_dc.png", dpi=150)
+plt.close()
+
+# ---------------------------------------------------------
+# PDF COMPILADO COM AS DUAS ABORDAGENS
+# ---------------------------------------------------------
 with PdfPages(pasta_passo3 / "FACs_StarTrek_Completo.pdf") as pdf:
-    # Pagina 1: Zoom (0 a 250)
+    # Pagina 1: Zoom com nivel DC (Canonica Profa. Rosangela)
     fig1, axs1 = plt.subplots(3, 1, figsize=(10, 11), dpi=120)
-    fig1.suptitle("FACs - Zoom (0 a 250 amostras) [Nivel DC Removido]", fontsize=14, fontweight="bold")
-    axs1[0].plot(lags_zoom, xx_zoom, color="red", linewidth=1.1)
-    axs1[0].axhline(0, color="black", linestyle="--", linewidth=0.8)
+    fig1.suptitle("FACs - Zoom (0 a 250) [Nivel DC Mantido - Preservando Media e Variancia]", fontsize=13, fontweight="bold")
+
+    axs1[0].plot(lags_zoom, fac_x_dc[:max_zoom + 1], color="red", linewidth=1.1)
+    axs1[0].axhline(dc_nivel_x, color="darkred", linestyle="--", linewidth=0.8, label=f"DC: {dc_nivel_x:.4f}")
     axs1[0].set_title(f"Autocorrelacao Zoom: {nome_x}")
-    axs1[0].set_ylabel("Coeficiente")
+    axs1[0].set_ylabel("r_{XX}(k)")
     axs1[0].grid(True, linestyle="--", alpha=0.6)
+    axs1[0].legend(loc="upper right")
 
-    axs1[1].plot(lags_zoom, yy_zoom, color="blue", linewidth=1.1)
-    axs1[1].axhline(0, color="black", linestyle="--", linewidth=0.8)
-    axs1[1].set_title(f"Autocorrelacao Zoom: {nome_y}")
-    axs1[1].set_ylabel("Coeficiente")
+    axs1[1].plot(lags_zoom, fac_y_dc[:max_zoom + 1], color="blue", linewidth=1.1)
+    axs1[1].axhline(dc_nivel_y, color="darkblue", linestyle="--", linewidth=0.8, label=f"DC: {dc_nivel_y:.4f}")
+    axs1[1].set_title(f"Autocorrelacao Zoom: {nome_y} (Picos do GoP N=12)")
+    axs1[1].set_ylabel("r_{YY}(k)")
     axs1[1].grid(True, linestyle="--", alpha=0.6)
+    axs1[1].legend(loc="upper right")
 
-    axs1[2].plot(lags_zoom, xy_zoom, color="purple", linewidth=1.1)
-    axs1[2].axhline(0, color="black", linestyle="--", linewidth=0.8)
+    axs1[2].plot(lags_zoom, fac_xy_dc[:max_zoom + 1], color="purple", linewidth=1.1)
     axs1[2].set_title(f"Correlacao Cruzada Zoom: {nome_x} x Bloco {nome_y}")
     axs1[2].set_xlabel("Lag (k >= 0)")
-    axs1[2].set_ylabel("Coeficiente")
+    axs1[2].set_ylabel("r_{XY}(k)")
     axs1[2].grid(True, linestyle="--", alpha=0.6)
 
     plt.tight_layout()
     pdf.savefig(fig1)
     plt.close(fig1)
 
-    # Pagina 2: Varredura Completa
+    # Pagina 2: Varredura Completa com Nivel DC
     fig2, axs2 = plt.subplots(3, 1, figsize=(10, 11), dpi=120)
-    fig2.suptitle("FACs - Varredura Completa [Nivel DC Removido]", fontsize=14, fontweight="bold")
-    axs2[0].plot(k_x, fac_xx, color="red", linewidth=0.8)
-    axs2[0].axhline(0, color="black", linestyle="--", linewidth=0.8)
+    fig2.suptitle("FACs - Varredura Completa [Nivel DC Mantido]", fontsize=13, fontweight="bold")
+
+    axs2[0].plot(k_x, fac_x_dc, color="red", linewidth=0.8)
+    axs2[0].axhline(dc_nivel_x, color="darkred", linestyle="--", linewidth=0.8, label=f"DC: {dc_nivel_x:.4f}")
     axs2[0].set_title(f"Autocorrelacao Completa: {nome_x} (~26k)")
-    axs2[0].set_ylabel("Coeficiente")
+    axs2[0].set_ylabel("r_{XX}(k)")
     axs2[0].grid(True, linestyle="--", alpha=0.6)
+    axs2[0].legend(loc="upper right")
 
-    axs2[1].plot(k_y, fac_yy, color="blue", linewidth=0.8)
-    axs2[1].axhline(0, color="black", linestyle="--", linewidth=0.8)
+    axs2[1].plot(k_y, fac_y_dc, color="blue", linewidth=0.8)
+    axs2[1].axhline(dc_nivel_y, color="darkblue", linestyle="--", linewidth=0.8, label=f"DC: {dc_nivel_y:.4f}")
     axs2[1].set_title(f"Autocorrelacao Completa: {nome_y} (~90k)")
-    axs2[1].set_ylabel("Coeficiente")
+    axs2[1].set_ylabel("r_{YY}(k)")
     axs2[1].grid(True, linestyle="--", alpha=0.6)
+    axs2[1].legend(loc="upper right")
 
-    axs2[2].plot(k_x, fac_xy, color="purple", linewidth=0.8)
-    axs2[2].axhline(0, color="black", linestyle="--", linewidth=0.8)
+    axs2[2].plot(k_x, fac_xy_dc, color="purple", linewidth=0.8)
     axs2[2].set_title(f"Correlacao Cruzada Completa: {nome_x} x Bloco {nome_y} (~26k)")
     axs2[2].set_xlabel("Lag (k >= 0)")
-    axs2[2].set_ylabel("Coeficiente")
+    axs2[2].set_ylabel("r_{XY}(k)")
     axs2[2].grid(True, linestyle="--", alpha=0.6)
 
     plt.tight_layout()
     pdf.savefig(fig2)
     plt.close(fig2)
 
-print("Passo 3 concluido.")
+    # Pagina 3: Zoom Sem Nivel DC (Autocovariancia / AC pura)
+    fig3, axs3 = plt.subplots(3, 1, figsize=(10, 11), dpi=120)
+    fig3.suptitle("FACs - Zoom (0 a 250) [Sem Nivel DC - Flutuacoes AC Puras]", fontsize=13, fontweight="bold")
+
+    axs3[0].plot(lags_zoom, fac_x_ac[:max_zoom + 1], color="red", linewidth=1.1)
+    axs3[0].axhline(0, color="black", linestyle="--", linewidth=0.8)
+    axs3[0].set_title(f"Autocovariancia: {nome_x}")
+    axs3[0].set_ylabel("\\rho_{XX}(k)")
+    axs3[0].grid(True, linestyle="--", alpha=0.6)
+
+    axs3[1].plot(lags_zoom, fac_y_ac[:max_zoom + 1], color="blue", linewidth=1.1)
+    axs3[1].axhline(0, color="black", linestyle="--", linewidth=0.8)
+    axs3[1].set_title(f"Autocovariancia: {nome_y}")
+    axs3[1].set_ylabel("\\rho_{YY}(k)")
+    axs3[1].grid(True, linestyle="--", alpha=0.6)
+
+    axs3[2].plot(lags_zoom, fac_xy_ac[:max_zoom + 1], color="purple", linewidth=1.1)
+    axs3[2].axhline(0, color="black", linestyle="--", linewidth=0.8)
+    axs3[2].set_title(f"Covariancia Cruzada: {nome_x} x Bloco {nome_y}")
+    axs3[2].set_xlabel("Lag (k >= 0)")
+    axs3[2].set_ylabel("\\rho_{XY}(k)")
+    axs3[2].grid(True, linestyle="--", alpha=0.6)
+
+    plt.tight_layout()
+    pdf.savefig(fig3)
+    plt.close(fig3)
+
+print("Passo 3 concluido com sucesso!")
