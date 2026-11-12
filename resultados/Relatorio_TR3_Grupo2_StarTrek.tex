@@ -13,10 +13,17 @@
 \usepackage{array}
 \usepackage{indentfirst}
 \usepackage{microtype}
+\usepackage{setspace}
+\usepackage[font=small,labelfont=bf,labelsep=period]{caption}
 \usepackage{hyperref}
 
 \geometry{left=2.5cm, right=2.5cm, top=2.5cm, bottom=2.5cm}
 \sloppy
+\setstretch{1.2}
+\setlength{\textfloatsep}{12pt plus 2pt minus 2pt}
+\setlength{\floatsep}{10pt plus 2pt minus 2pt}
+\setlength{\abovedisplayskip}{8pt plus 2pt minus 2pt}
+\setlength{\belowdisplayskip}{8pt plus 2pt minus 2pt}
 
 \hypersetup{
     colorlinks=false,
@@ -38,7 +45,8 @@
     {\normalsize \textbf{SEÇÃO DE ENGENHARIA ELÉTRICA E DE SISTEMAS (SE/3)}}\\[1mm]
     {\normalsize \textbf{DISCIPLINA: MODELOS PROBABILÍSTICOS (EE-03247)}}\\[4mm]
     \rule{\textwidth}{0.8pt}\\[3mm]
-    {\Large \textbf{TRABALHO 3: ANÁLISE ESTOCÁSTICA DE SINAIS DE VÍDEO CODIFICADOS}}\\[2mm]
+    {\Large \textbf{TRABALHO 3}}\\[2mm]
+    {\large \textbf{ANÁLISE ESTOCÁSTICA DE SINAIS DE VÍDEO CODIFICADOS}}\\[2mm]
     {\normalsize \textbf{Grupo 2 — Sequência \textit{Star Trek}}}\\[3mm]
     {\normalsize \textbf{Alunos:} João Victor Pariz e Renato Felix}\\[1mm]
     {\normalsize \textbf{Professora:} Rosângela Fernandes Coelho}\\[1mm]
@@ -80,34 +88,34 @@ P_X(x) = \frac{1}{\sqrt{2\pi\sigma_X^2}} \exp\!\left(-\frac{(x - m_X)^2}{2\sigma
 
 Na Figura \ref{fig:sinais_tempo} são apresentados os gráficos temporais de $X[n]$ e $Y[n]$ em bits por quadro. Na Figura \ref{fig:histogramas}, mostram-se os histogramas normalizados obtidos a partir dos dados, juntamente com o ajuste da curva teórica Gaussiana $P_X(x)$ e $P_Y(y)$ calculada com a mesma média e variância de cada sinal.
 
-\begin{figure}[H]
+\begin{figure}[!tbp]
     \centering
-    \begin{subfigure}[b]{0.49\textwidth}
+    \begin{subfigure}[b]{0.48\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{Programas/resultados/passo1_sinais_e_histogramas/sinal_startrek_h263_64k.png}
+        \includegraphics[width=\linewidth]{Programas/resultados/passo1_sinais_e_histogramas/sinal_startrek_h263_64k.png}
         \caption{Sinal $X[n]$ (\texttt{startrek\_h263\_64k}, $N_X=26.192$).}
     \end{subfigure}
     \hfill
-    \begin{subfigure}[b]{0.49\textwidth}
+    \begin{subfigure}[b]{0.48\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{Programas/resultados/passo1_sinais_e_histogramas/sinal_startrek_mpeg4_hq.png}
+        \includegraphics[width=\linewidth]{Programas/resultados/passo1_sinais_e_histogramas/sinal_startrek_mpeg4_hq.png}
         \caption{Sinal $Y[n]$ (\texttt{startrek\_mpeg4\_hq}, $N_Y=89.998$).}
     \end{subfigure}
     \caption{Séries temporais do número de bits por quadro para os dois sinais de vídeo.}
     \label{fig:sinais_tempo}
 \end{figure}
 
-\begin{figure}[H]
+\begin{figure}[!tbp]
     \centering
-    \begin{subfigure}[b]{0.49\textwidth}
+    \begin{subfigure}[b]{0.48\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{Programas/resultados/passo1_sinais_e_histogramas/histograma_gaussiana_startrek_h263_64k.png}
+        \includegraphics[width=\linewidth]{Programas/resultados/passo1_sinais_e_histogramas/histograma_gaussiana_startrek_h263_64k.png}
         \caption{Histograma e Gaussiana teórica (\texttt{h263\_64k}).}
     \end{subfigure}
     \hfill
-    \begin{subfigure}[b]{0.49\textwidth}
+    \begin{subfigure}[b]{0.48\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{Programas/resultados/passo1_sinais_e_histogramas/histograma_gaussiana_startrek_mpeg4_hq.png}
+        \includegraphics[width=\linewidth]{Programas/resultados/passo1_sinais_e_histogramas/histograma_gaussiana_startrek_mpeg4_hq.png}
         \caption{Histograma e Gaussiana teórica (\texttt{mpeg4\_hq}).}
     \end{subfigure}
     \caption{Comparação entre o histograma normalizado dos dados e a f.d.p.\ Gaussiana teórica.}
@@ -139,34 +147,45 @@ m_X &= E[X] = \frac{1}{N}\sum_{n=0}^{N-1} x[n], & \text{VMQ}_X &= E[X^2] = \frac
 \sigma_X^2 &= E[(X - m_X)^2] = \text{VMQ}_X - m_X^2, & \sigma_X &= \sqrt{\sigma_X^2}
 \end{align}
 
-Como o sinal H.263 possui $N_X = 26.192$ quadros e o sinal MPEG-4 possui $N_Y = 89.998$ quadros, para realizar o cálculo dos momentos conjuntos, da autocorrelação cruzada e da descorrelação 2-a-2 (Itens 2, 3 e 4) é necessário que ambas as sequências tenham o mesmo comprimento $N = 26.192$. Para que o trecho escolhido do MPEG-4 represente fielmente as características estatísticas da série original de $89.998$ amostras sem quebrar o período de $12$ quadros do GoP, selecionou-se o bloco contíguo de $N = 26.192$ amostras entre os índices $k_{\text{ini}} = 8.992$ e $k_{\text{fim}} = 35.184$, cuja média e desvio-padrão diferem em menos de $1\%$ dos valores da sequência completa. A Tabela \ref{tab:momentos} reúne todos os valores calculados.
+Como o sinal H.263 possui $N_X = 26.192$ quadros e o sinal MPEG-4 possui $N_Y = 89.998$ quadros, para realizar o cálculo dos momentos conjuntos, da autocorrelação cruzada e da descorrelação 2-a-2 (Itens 2, 3 e 4) é necessário que ambas as sequências tenham o mesmo comprimento $N = 26.192$. Para que o trecho escolhido do MPEG-4 represente fielmente as características estatísticas da série original de $89.998$ amostras sem quebrar o período de $12$ quadros do GoP, selecionou-se o bloco contíguo de $N = 26.192$ amostras entre os índices $k_{\text{ini}} = 8.992$ e $k_{\text{fim}} = 35.184$, cuja média e desvio-padrão diferem em menos de $1\%$ dos valores da sequência completa. As Tabelas \ref{tab:momentos} e \ref{tab:conjuntos} reúnem todos os valores calculados.
 
-\begin{table}[H]
+\begin{table}[!htbp]
 \centering
-\caption{Valores esperados marginais e conjuntos para os sinais do Grupo 2 (\textit{Star Trek}).}
+\caption{Valores esperados marginais dos sinais do Grupo 2 (\textit{Star Trek}).}
 \label{tab:momentos}
-\renewcommand{\arraystretch}{1.2}
-\resizebox{\textwidth}{!}{%
-\begin{tabular}{lccc}
+\renewcommand{\arraystretch}{1.25}
+\small
+\begin{tabular}{lrrr}
 \toprule
-\textbf{Parâmetro Estatístico} & \textbf{H.263 ($X[n]$)} & \textbf{MPEG-4 ($Y[n]$ total)} & \textbf{MPEG-4 ($Y_{\text{bloco}}[n]$)} \\
+ & \multicolumn{1}{c}{$X[n]$} & \multicolumn{1}{c}{$Y[n]$} & \multicolumn{1}{c}{$Y_{\text{bloco}}[n]$} \\
+ & \multicolumn{1}{c}{(H.263)} & \multicolumn{1}{c}{(MPEG-4 completo)} & \multicolumn{1}{c}{(MPEG-4 bloco)} \\
 \midrule
-Número de amostras ($N$) & $26.192$ & $89.998$ & $26.192$ \\
-Média $m = E[\cdot]$ ($\text{bits}$) & $1.099{,}2799$ & $1.644{,}8076$ & $1.640{,}6089$ \\
-Variância $\sigma^2$ ($\text{bits}^2$) & $254.130{,}0822$ & $1.454.519{,}4996$ & $1.481.147{,}7026$ \\
-Desvio-Padrão $\sigma$ ($\text{bits}$) & $504{,}1132$ & $1.206{,}0346$ & $1.217{,}0241$ \\
-Valor Médio Quadrático $\text{VMQ} = E[(\cdot)^2]$ ($\text{bits}^2$) & $1.462.546{,}3689$ & $4.159.911{,}5631$ & $4.172.745{,}1901$ \\
-Valor Eficaz $\sqrt{\text{VMQ}}$ ($\text{bits}$) & $1.209{,}3578$ & $2.039{,}5861$ & $2.042{,}7298$ \\
-\midrule
-\multicolumn{4}{c}{\textbf{Momentos Conjuntos entre $X[n]$ e $Y_{\text{bloco}}[n]$ ($N = 26.192$)}} \\
-\midrule
-Correlação cruzada em $k=0$: $R_{XY}[0] = E[XY]$ & \multicolumn{3}{c}{$1.800.524{,}7502\text{ bits}^2$} \\
-Covariância cruzada em $k=0$: $K_{XY}[0] = R_{XY}[0] - m_X m_Y$ & \multicolumn{3}{c}{$-2.963{,}9094\text{ bits}^2$} \\
-Coeficiente de correlação: $\rho_{XY}[0] = K_{XY}[0]/(\sigma_X \sigma_Y)$ & \multicolumn{3}{c}{$-0{,}004831$} \\
-VMQ da diferença: $E[(X - Y)^2] = \text{VMQ}_X + \text{VMQ}_Y - 2R_{XY}[0]$ & \multicolumn{3}{c}{$2.034.243{,}5284\text{ bits}^2$} \\
+Amostras ($N$) & $26.192$ & $89.998$ & $26.192$ \\
+Média $m$ (bits) & $1.099{,}2799$ & $1.644{,}8076$ & $1.640{,}6089$ \\
+Variância $\sigma^2$ (bits$^2$) & $254.130{,}0822$ & $1.454.519{,}4996$ & $1.481.147{,}7026$ \\
+Desvio-padrão $\sigma$ (bits) & $504{,}1132$ & $1.206{,}0346$ & $1.217{,}0241$ \\
+VMQ $=E[(\cdot)^2]$ (bits$^2$) & $1.462.546{,}3689$ & $4.159.911{,}5631$ & $4.172.745{,}1901$ \\
+Valor eficaz $\sqrt{\text{VMQ}}$ (bits) & $1.209{,}3578$ & $2.039{,}5861$ & $2.042{,}7298$ \\
 \bottomrule
-\end{tabular}%
-}
+\end{tabular}
+\end{table}
+
+\begin{table}[!htbp]
+\centering
+\caption{Momentos conjuntos entre $X[n]$ e $Y_{\text{bloco}}[n]$ ($N = 26.192$).}
+\label{tab:conjuntos}
+\renewcommand{\arraystretch}{1.25}
+\small
+\begin{tabular}{lr}
+\toprule
+Grandeza & Valor \\
+\midrule
+Correlação cruzada $R_{XY}[0] = E[XY]$ & $1.800.524{,}7502\ \text{bits}^2$ \\
+Covariância cruzada $K_{XY}[0] = R_{XY}[0] - m_X m_Y$ & $-2.963{,}9094\ \text{bits}^2$ \\
+Coeficiente de correlação $\rho_{XY}[0] = K_{XY}[0]/(\sigma_X \sigma_Y)$ & $-0{,}004831$ \\
+VMQ da diferença $E[(X - Y)^2]$ & $2.034.243{,}5284\ \text{bits}^2$ \\
+\bottomrule
+\end{tabular}
 \end{table}
 
 Pode-se conferir nos resultados a identidade $\text{VMQ}_X = E[X^2] = \sigma_X^2 + m_X^2$:
@@ -197,34 +216,34 @@ r_X[k] = \frac{R_X[k]}{R_X[0]} = \frac{R_X[k]}{\text{VMQ}_X} \implies r_X[0] = 1
 
 As Figuras \ref{fig:facs_individuais} e \ref{fig:fac_cruzada} mostram as FACs individuais dos dois sinais (normalizadas pelo VMQ para preservar a relação entre nível médio e variância) e a correlação cruzada entre eles.
 
-\begin{figure}[H]
+\begin{figure}[!tbp]
     \centering
-    \begin{subfigure}[b]{0.49\textwidth}
+    \begin{subfigure}[b]{0.48\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{Programas/resultados/passo3_facs/fac_startrek_h263_64k_zoom.png}
+        \includegraphics[width=\linewidth]{Programas/resultados/passo3_facs/fac_startrek_h263_64k_zoom.png}
         \caption{FAC de $X[n]$ (\texttt{h263\_64k}, $0 \le k \le 250$).}
     \end{subfigure}
     \hfill
-    \begin{subfigure}[b]{0.49\textwidth}
+    \begin{subfigure}[b]{0.48\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{Programas/resultados/passo3_facs/fac_startrek_mpeg4_hq_zoom.png}
+        \includegraphics[width=\linewidth]{Programas/resultados/passo3_facs/fac_startrek_mpeg4_hq_zoom.png}
         \caption{FAC de $Y[n]$ (\texttt{mpeg4\_hq}, $0 \le k \le 250$).}
     \end{subfigure}
     \caption{Funções de Autocorrelação individuais normalizadas pelo VMQ ($r_X[0] = 1{,}0$).}
     \label{fig:facs_individuais}
 \end{figure}
 
-\begin{figure}[H]
+\begin{figure}[!tbp]
     \centering
-    \begin{subfigure}[b]{0.49\textwidth}
+    \begin{subfigure}[b]{0.48\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{Programas/resultados/passo3_facs/fac_cruzada_zoom.png}
+        \includegraphics[width=\linewidth]{Programas/resultados/passo3_facs/fac_cruzada_zoom.png}
         \caption{FAC cruzada $\rho_{XY}[k]$ (detalhe $0 \le k \le 250$).}
     \end{subfigure}
     \hfill
-    \begin{subfigure}[b]{0.49\textwidth}
+    \begin{subfigure}[b]{0.48\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{Programas/resultados/passo3_facs/fac_cruzada_completa.png}
+        \includegraphics[width=\linewidth]{Programas/resultados/passo3_facs/fac_cruzada_completa.png}
         \caption{FAC cruzada $\rho_{XY}[k]$ ($0 \le k \le 26.191$).}
     \end{subfigure}
     \caption{Função de correlação cruzada entre \texttt{startrek\_h263\_64k} e \texttt{startrek\_mpeg4\_hq}.}
@@ -271,34 +290,34 @@ Calculando o coeficiente de correlação entre $W_1[n]$ e $W_2[n]$ no atraso zer
 \]
 confirmando que os sinais $W_1[n]$ e $W_2[n]$ estão descorrelatados. As Figuras \ref{fig:descorrelacao_cruzada} e \ref{fig:facs_descorrelacionadas} mostram a correlação cruzada após a descorrelação e as FACs individuais de $W_1[n]$ e $W_2[n]$.
 
-\begin{figure}[H]
+\begin{figure}[!tbp]
     \centering
-    \begin{subfigure}[b]{0.49\textwidth}
+    \begin{subfigure}[b]{0.48\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{Programas/resultados/passo4_descorrelacao/descorrelacao_cruzada_zoom.png}
+        \includegraphics[width=\linewidth]{Programas/resultados/passo4_descorrelacao/descorrelacao_cruzada_zoom.png}
         \caption{FAC cruzada $\rho_{W_1 W_2}[k]$ ($0 \le k \le 250$).}
     \end{subfigure}
     \hfill
-    \begin{subfigure}[b]{0.49\textwidth}
+    \begin{subfigure}[b]{0.48\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{Programas/resultados/passo4_descorrelacao/descorrelacao_cruzada_completa.png}
+        \includegraphics[width=\linewidth]{Programas/resultados/passo4_descorrelacao/descorrelacao_cruzada_completa.png}
         \caption{Comparação antes e depois da descorrelação.}
     \end{subfigure}
     \caption{Correlação cruzada entre as componentes $W_1[n]$ e $W_2[n]$ após a descorrelação 2-a-2.}
     \label{fig:descorrelacao_cruzada}
 \end{figure}
 
-\begin{figure}[H]
+\begin{figure}[!tbp]
     \centering
-    \begin{subfigure}[b]{0.49\textwidth}
+    \begin{subfigure}[b]{0.48\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{Programas/resultados/passo4_descorrelacao/fac_descorrelacionado_w1.png}
+        \includegraphics[width=\linewidth]{Programas/resultados/passo4_descorrelacao/fac_descorrelacionado_w1.png}
         \caption{FAC de $W_1[n]$.}
     \end{subfigure}
     \hfill
-    \begin{subfigure}[b]{0.49\textwidth}
+    \begin{subfigure}[b]{0.48\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{Programas/resultados/passo4_descorrelacao/fac_descorrelacionado_w2.png}
+        \includegraphics[width=\linewidth]{Programas/resultados/passo4_descorrelacao/fac_descorrelacionado_w2.png}
         \caption{FAC de $W_2[n]$.}
     \end{subfigure}
     \caption{Funções de Autocorrelação dos sinais descorrelatados $W_1[n]$ e $W_2[n]$.}
@@ -331,7 +350,7 @@ De acordo com o Capítulo 7 do livro do J.J.W. (páginas 246 e 247) \cite{JJW} e
 
 Para verificar se essas condições são satisfeitas pelos sinais de vídeo, calcularam-se a média local e a variância local ao longo do tempo utilizando uma janela deslizante de $W = 1.000$ quadros. O resultado é mostrado na Figura \ref{fig:estacionariedade}.
 
-\begin{figure}[H]
+\begin{figure}[!tbp]
     \centering
     \includegraphics[width=0.88\textwidth]{Programas/resultados/passo6_7_dep_e_espectro/fig6_estacionariedade.png}
     \caption{Comportamento da média móvel e da variância móvel ao longo do tempo (janela de $1.000$ quadros).}
@@ -358,7 +377,7 @@ Pela relação de Wiener-Khinchin (Capítulo 7 do J.J.W., página 256 \cite{JJW}
 \begin{equation}
 S_X(f) = \mathcal{F}\big\{ R_X(\tau) \big\} \longleftrightarrow R_X(\tau) = \mathcal{F}^{-1}\big\{ S_X(f) \big\}
 \end{equation}
-Para sinais discretos no tempo, em função da frequência normalizada $f \in [-0{,}5; +0{,}5]\text{ ciclos/amostra}$:
+Para sinais discretos no tempo, com frequência normalizada $f$ em ciclos/amostra ($-0{,}5 \le f \le 0{,}5$):
 \begin{equation}
 S_X(f) = \sum_{k=-\infty}^{\infty} R_X[k] e^{-j 2\pi f k}, \qquad P_X = E[X^2[n]] = \text{VMQ}_X = R_X[0] = \int_{-0{,}5}^{0{,}5} S_X(f)\,df
 \end{equation}
@@ -366,17 +385,17 @@ A DEP é uma função real, par ($S_X(-f) = S_X(f)$) e não-negativa ($S_X(f) \g
 
 Seguindo a definição da DEP como Transformada de Fourier da autocorrelação (conforme implementado na rotina de referência \texttt{dep.m}) e utilizando o periodograma médio de Welch (janelas de Hanning de $2.048$ amostras com $50\%$ de sobreposição) para suavizar a variância de estimação em escala logarítmica ($\text{dB} = 10\log_{10} S_X(f)$), obtiveram-se os espectros apresentados na Figura \ref{fig:deps}.
 
-\begin{figure}[H]
+\begin{figure}[!tbp]
     \centering
-    \begin{subfigure}[b]{0.49\textwidth}
+    \begin{subfigure}[b]{0.48\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{Programas/resultados/passo6_7_dep_e_espectro/dep_startrek_h263_64k.png}
+        \includegraphics[width=\linewidth]{Programas/resultados/passo6_7_dep_e_espectro/dep_startrek_h263_64k.png}
         \caption{DEP do sinal $X[n]$ (\texttt{startrek\_h263\_64k}).}
     \end{subfigure}
     \hfill
-    \begin{subfigure}[b]{0.49\textwidth}
+    \begin{subfigure}[b]{0.48\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{Programas/resultados/passo6_7_dep_e_espectro/dep_startrek_mpeg4_hq.png}
+        \includegraphics[width=\linewidth]{Programas/resultados/passo6_7_dep_e_espectro/dep_startrek_mpeg4_hq.png}
         \caption{DEP do sinal $Y[n]$ (\texttt{startrek\_mpeg4\_hq}).}
     \end{subfigure}
     \caption{Densidade Espectral de Potência (DEP) dos dois sinais de vídeo.}
@@ -410,17 +429,17 @@ Quando a potência não se distribui igualmente em todas as frequências, o espe
 
 A Figura \ref{fig:cor_espectro} apresenta a DEP em escala log-log e a reta ajustada nas baixas frequências para estimar o expoente $\alpha$ de cada sinal.
 
-\begin{figure}[H]
+\begin{figure}[!tbp]
     \centering
-    \begin{subfigure}[b]{0.49\textwidth}
+    \begin{subfigure}[b]{0.48\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{Programas/resultados/passo6_7_dep_e_espectro/cor_espectro_startrek_h263_64k.png}
+        \includegraphics[width=\linewidth]{Programas/resultados/passo6_7_dep_e_espectro/cor_espectro_startrek_h263_64k.png}
         \caption{H.263 64k ($\alpha = 0{,}63$).}
     \end{subfigure}
     \hfill
-    \begin{subfigure}[b]{0.49\textwidth}
+    \begin{subfigure}[b]{0.48\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{Programas/resultados/passo6_7_dep_e_espectro/cor_espectro_startrek_mpeg4_hq.png}
+        \includegraphics[width=\linewidth]{Programas/resultados/passo6_7_dep_e_espectro/cor_espectro_startrek_mpeg4_hq.png}
         \caption{MPEG-4 HQ ($\alpha = 1{,}23$).}
     \end{subfigure}
     \caption{Determinação da inclinação espectral em escala log-log para classificação da cor do espectro.}
@@ -445,7 +464,6 @@ A realização do trabalho permitiu aplicar os conceitos de variáveis aleatóri
 % ========================================================
 \begin{thebibliography}{9}
 \bibitem{JJW} ALBUQUERQUE, J. P. A.; FORTES, J. M. P.; FINAMORE, W. A. \textit{Probabilidade, Variáveis Aleatórias e Processos Estocásticos}. Rio de Janeiro: Editora PUC-Rio / LTC, Capítulos 6 e 7.
-\bibitem{Papoulis} PAPOULIS, A.; PILLAI, S. U. \textit{Probability, Random Variables and Stochastic Processes}. 4th ed. New York: McGraw-Hill, 2002.
 \bibitem{Rosangela} COELHO, R. F. \textit{Notas de Aula e Apostilas de Modelos Probabilísticos}. Seção de Engenharia Elétrica e de Sistemas (SE/3), Instituto Militar de Engenharia (IME), 2026.
 \end{thebibliography}
 
