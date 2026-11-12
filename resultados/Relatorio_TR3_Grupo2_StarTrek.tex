@@ -58,7 +58,7 @@
 
 \section*{Introdução}
 
-Este trabalho analisa dois sinais de vídeo codificados do filme \textit{Star Trek}, usando ferramentas de processos estocásticos. Cada sinal é o número de bits por quadro:
+Este trabalho analisa dois sinais de vídeo codificados do filme \textit{Star Trek}, usando ferramentas de processos estocásticos. Os dados foram obtidos da biblioteca pública de \textit{traces} de vídeo da Universidade Técnica de Berlim, documentada por Fitzek e Reisslein \cite{Fitzek}. Cada sinal representa o tamanho dos quadros (em bytes):
 \begin{itemize}[leftmargin=*, nosep]
     \item $X[n]$: \texttt{startrek\_h263\_64k}, codificado em H.263, com $N_X = 26.192$ amostras;
     \item $Y[n]$: \texttt{startrek\_mpeg4\_hq}, codificado em MPEG-4, com $N_Y = 89.998$ amostras.
@@ -123,7 +123,7 @@ Calculamos $R_X[k] = E[X[n]X[n+k]]$ e $R_{XY}[k] = E[X[n]Y[n+k]]$, normalizadas 
 \fig{0.85}{passo3_facs/fac_cruzada_zoom.png}{Correlação cruzada entre $X[n]$ e $Y_{\text{bloco}}[n]$ (detalhe).}{fig:xy_zoom}
 \fig{0.85}{passo3_facs/fac_cruzada_completa.png}{Correlação cruzada entre $X[n]$ e $Y_{\text{bloco}}[n]$ (completa).}{fig:xy_comp}
 
-A FAC do H.263 decai de $1$ até o nível DC. A do MPEG-4 tem um pico a cada $12$ atrasos. Por isso a linha escura da Figura \ref{fig:fac_y} passa pelo ponto médio de cada ciclo, e não pelos picos. A correlação cruzada fica em torno de zero: os sinais são praticamente descorrelatados.
+A FAC do H.263 decai de $1$ até o nível DC. A do MPEG-4 tem um pico a cada $12$ atrasos, gerado pela estrutura repetitiva de compressão (GoP de $12$ quadros) descrita em \cite{Fitzek}. A linha escura da Figura \ref{fig:fac_y} passa pelo ponto médio de cada ciclo, passando pelo meio da oscilação para remover os picos periódicos conforme a professora orientou em aula. A correlação cruzada fica em torno de zero: os sinais são praticamente descorrelatados.
 
 % ========================================================
 \section{Descorrelação 2-a-2}
@@ -196,6 +196,7 @@ Os dois sinais caem cerca de $10\text{ dB}$ por década, então o espectro dos d
 \begin{thebibliography}{9}
 \bibitem{JJW} ALBUQUERQUE, J. P. A.; FORTES, J. M. P.; FINAMORE, W. A. \textit{Probabilidade, Variáveis Aleatórias e Processos Estocásticos}. Rio de Janeiro: Editora PUC-Rio / LTC, Capítulos 6 e 7.
 \bibitem{Rosangela} COELHO, R. F. \textit{Notas de Aula e Apostilas de Modelos Probabilísticos}. SE/3, Instituto Militar de Engenharia (IME), 2026.
+\bibitem{Fitzek} FITZEK, F. H. P.; REISSLEIN, M. MPEG-4 and H.263 video traces for network performance evaluation. \textit{IEEE Network}, v. 15, n. 6, p. 40--54, nov./dez. 2001.
 \end{thebibliography}
 
 \end{document}
