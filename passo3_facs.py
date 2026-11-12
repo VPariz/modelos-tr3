@@ -113,9 +113,37 @@ fac_y_ac = ryc_biased / ryc_biased[0]
 rxyc_biased = signal.correlate(x_c, y_bloco_c, mode="full", method="fft")[N - 1 :] / N
 fac_xy_ac = rxyc_biased / np.sqrt(rxc_biased[0] * np.var(y_bloco))
 
-# Zooms positivos (0 a 250)
-max_zoom = 250
+# Zooms positivos (0 a 800, alinhado ao Grupo 3)
+max_zoom = 800
 lags_zoom = np.arange(0, max_zoom + 1)
+
+# Suavizacao de controle de taxa de periodo 3 no H.263
+idx3_x = np.arange(0, N, 3)
+fac_x_dc_smooth = np.interp(np.arange(N), idx3_x, fac_x_dc[idx3_x])
+fac_x_dc_smooth[0] = 1.0
+
+# Normalizacao central pelo ponto medio dos ciclos GoP no MPEG-4 ('cara la no meio')
+lags_mid_zoom = [0]
+vals_mid_zoom = [1.0]
+for b in range(1, (max_zoom + 1) // 12):
+    k0 = b * 12
+    k1 = min(k0 + 12, max_zoom + 1)
+    sub = fac_y_dc[k0:k1]
+    lags_mid_zoom.append(k0 + 6)
+    vals_mid_zoom.append((np.min(sub) + np.max(sub)) / 2.0)
+midline_zoom = np.interp(lags_zoom, lags_mid_zoom, vals_mid_zoom)
+
+# Varredura completa central
+lags_mid_comp = [0]
+vals_mid_comp = [1.0]
+step_gop = 12
+for b in range(1, N_y // step_gop):
+    k0 = b * step_gop
+    k1 = min(k0 + step_gop, N_y)
+    sub = fac_y_dc[k0:k1]
+    lags_mid_comp.append(k0 + step_gop // 2)
+    vals_mid_comp.append((np.min(sub) + np.max(sub)) / 2.0)
+midline_comp = np.interp(k_y, lags_mid_comp, vals_mid_comp)
 
 dc_nivel_x = m_x**2 / vmq_x
 dc_nivel_y = m_y**2 / vmq_y
@@ -148,12 +176,55 @@ plotar_fac(k_y, fac_y_dc, f"Autocorrelacao Completa: {nome_y} (~90k)", "r_{YY}(k
 plotar_fac(k_x, fac_xy_dc, f"Correlacao Cruzada Completa: {nome_x} x Bloco {nome_y} (~26k)", "r_{XY}(k)", "purple",
            pasta_passo3 / "fac_cruzada_completa.png")
 
-# 2. Zooms Positivos (0 a 250)
-plotar_fac(lags_zoom, fac_x_dc[:max_zoom + 1], f"Autocorrelacao Zoom (0 a 250): {nome_x} [Nivel DC Mantido]",
-           "r_{XX}(k)", "red", pasta_passo3 / f"fac_{nome_x}_zoom.png", linha_dc=dc_nivel_x)
-plotar_fac(lags_zoom, fac_y_dc[:max_zoom + 1], f"Autocorrelacao Zoom (0 a 250): {nome_y} [Preservando Media e Variancia]",
-           "r_{YY}(k)", "blue", pasta_passo3 / f"fac_{nome_y}_zoom.png", linha_dc=dc_nivel_y)
-plotar_fac(lags_zoom, fac_xy_dc[:max_zoom + 1], f"Correlacao Cruzada Zoom (0 a 250): {nome_x} x Bloco {nome_y}",
+# 2. Zooms Positivos (0 a 800)
+# H.263 com decaimento suave (suavizacao de artefato PB de 3 quadros)
+plt.figure(figsize=(8, 4.2), dpi=150)
+plt.plot(lags_zoom, fac_x_dc_smooth[:max_zoom + 1], color="red", linewidth=1.1, label=f"{nome_x} (FAC normalizada)")
+plt.axhline(dc_nivel_x, color="darkred", linestyle="--", linewidth=0.8, label=f"Nivel DC: {dc_nivel_x:.4f}")
+plt.title(f"Autocorrelacao {nome_x} — Visao Aproximada (0 a {max_zoom})")
+plt.xlabel("Deslocamento de tempo (Lag k)")
+plt.ylabel("Autocorrelacao Normalizada")
+plt.xlim(0, max_zoom)
+plt.legend(loc="upper right")
+plt.grid(True, linestyle="--", alpha=0.5)
+plt.tight_layout()
+plt.savefig(pasta_passo3 / f"fac_{nome_x}_zoom.png", dpi=150)
+plt.close()
+
+# MPEG-4 com oscilacao de GoP N=12 e linha media central ('cara la no meio')
+plt.figure(figsize=(8, 4.2), dpi=150)
+plt.plot(lags_zoom, fac_y_dc[:max_zoom + 1], color="#60a5fa", linewidth=0.7, alpha=0.75, label="FAC MPEG-4 (oscilacao GoP, N = 12)")
+plt.plot(lags_zoom, midline_zoom, color="#1e3a8a", linewidth=1.8, label="Linha media central (ponto medio dos ciclos)")
+plt.axhline(dc_nivel_y, color="darkblue", linestyle="--", linewidth=0.8, label=f"Nivel DC: {dc_nivel_y:.4f}")
+plt.title(f"Autocorrelacao {nome_y} — Visao Aproximada (0 a {max_zoom})")
+plt.xlabel("Deslocamento de tempo (Lag k)")
+plt.ylabel("Autocorrelacao Normalizada")
+plt.xlim(0, max_zoom)
+plt.ylim(0.60, 1.02)
+plt.legend(loc="upper right")
+plt.grid(True, linestyle="--", alpha=0.5)
+plt.tight_layout()
+plt.savefig(pasta_passo3 / f"fac_{nome_y}_zoom.png", dpi=150)
+plt.close()
+
+# MPEG-4 Completa com linha media central
+plt.figure(figsize=(8, 4.2), dpi=150)
+plt.plot(k_y, fac_y_dc, color="#60a5fa", linewidth=0.4, alpha=0.6, label="FAC MPEG-4 completa (~90k)")
+plt.plot(k_y, midline_comp, color="#1e3a8a", linewidth=1.5, label="Linha media central")
+plt.axhline(dc_nivel_y, color="darkblue", linestyle="--", linewidth=0.8, label=f"Nivel DC: {dc_nivel_y:.4f}")
+plt.title(f"Autocorrelacao {nome_y} — Varredura Completa (~90k)")
+plt.xlabel("Deslocamento de tempo (Lag k)")
+plt.ylabel("Autocorrelacao Normalizada")
+plt.xlim(0, N_y)
+plt.ylim(0.55, 1.02)
+plt.legend(loc="upper right")
+plt.grid(True, linestyle="--", alpha=0.5)
+plt.tight_layout()
+plt.savefig(pasta_passo3 / f"fac_{nome_y}_completa.png", dpi=150)
+plt.close()
+
+# Cruzada zoom (0 a 250)
+plotar_fac(lags_zoom[:251], fac_xy_dc[:251], f"Correlacao Cruzada Zoom (0 a 250): {nome_x} x Bloco {nome_y}",
            "r_{XY}(k)", "purple", pasta_passo3 / "fac_cruzada_zoom.png")
 
 # ---------------------------------------------------------
