@@ -142,20 +142,20 @@ As Figuras \ref{fig:sinais_tempo} e \ref{fig:histogramas} ilustram a dinâmica t
     \begin{subfigure}[b]{0.49\textwidth}
         \centering
         \includegraphics[width=\textwidth]{Programas/resultados/passo1_sinais_e_histogramas/histograma_gaussiana_startrek_h263_64k.png}
-        \caption{Histograma empírico vs.\ Gaussiana (\texttt{startrek\_h263\_64k}).}
+        \caption{Histograma vs.\ Gaussiana (\texttt{h263\_64k}).}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.49\textwidth}
         \centering
         \includegraphics[width=\textwidth]{Programas/resultados/passo1_sinais_e_histogramas/histograma_gaussiana_startrek_mpeg4_hq.png}
-        \caption{Histograma empírico vs.\ Gaussiana (\texttt{startrek\_mpeg4\_hq}).}
+        \caption{Histograma vs.\ Gaussiana (\texttt{mpeg4\_hq}).}
     \end{subfigure}
     \caption{Comparação entre a f.d.p.\ empírica e a distribuição Gaussiana teórica correspondente.}
     \label{fig:histogramas}
 \end{figure}
 
 \begin{conclusaobox}{Conclusão Analítica: Os sinais NÃO podem ser caracterizados por uma PDF Gaussiana}
-A hipótese de caracterização Gaussiana é **categoricamente rejeitada** para ambos os sinais, fundamentada em três pilares analíticos e físicos:
+A hipótese de caracterização Gaussiana é \textbf{categoricamente rejeitada} para ambos os sinais, fundamentada em três pilares analíticos e físicos:
 \begin{enumerate}[leftmargin=*, nosep]
     \item \textbf{Suporte Físico Estritamente Positivo ($X[n] \ge 0$):} A distribuição Gaussiana tem suporte bilateral irrestrito $(-\infty, +\infty)$, conferindo probabilidade estritamente não nula a valores negativos. No caso do MPEG-4 ajustado por $\mathcal{N}(1.644{,}81; 1.206{,}03^2)$, a probabilidade teórica de valores negativos seria $P(Y < 0) = \Phi(-1{,}644{,}81 / 1{,}206{,}03) \approx 8{,}6\%$, o que é uma contradição física para volume de bits gerados por um codificador.
     \item \textbf{Comportamento Bimodal do H.263 ($X[n]$):} O histograma do H.263 exibe estrutura claramente \textbf{bimodal}, com dois picos de concentração (em torno de $750\text{ bits}$ e $1.450\text{ bits}$), decorrentes da alternância de modos de predição inter-quadro e do controle adaptativo do passo de quantização. A distribuição Gaussiana é estritamente unimodal e simétrica.
@@ -173,11 +173,12 @@ Valores esperados: média, variância ou desvio-padrão e VMQ entre as duas sequ
 \end{itembox}
 
 Sob a hipótese de ergodicidade temporal na média e nos momentos quadráticos, os parâmetros estatísticos fundamentais de primeira e segunda ordem são obtidos pelos estimadores amostrais não tendenciosos:
-\[
-m_X = E[X] = \frac{1}{N}\sum_{n=0}^{N-1} x[n], \qquad \text{VMQ}_X = E[X^2] = \frac{1}{N}\sum_{n=0}^{N-1} x^2[n], \qquad \sigma_X^2 = \text{VMQ}_X - m_X^2, \qquad \sigma_X = \sqrt{\sigma_X^2}
-\]
+\begin{align*}
+m_X &= E[X] = \frac{1}{N}\sum_{n=0}^{N-1} x[n], & \text{VMQ}_X &= E[X^2] = \frac{1}{N}\sum_{n=0}^{N-1} x^2[n], \\
+\sigma_X^2 &= \text{VMQ}_X - m_X^2, & \sigma_X &= \sqrt{\sigma_X^2}
+\end{align*}
 
-Como as sequências possuem durações amostrais distintas ($N_X = 26.192$ e $N_Y = 89.998$), para viabilizar as análises conjuntas (momentos cruzados, FAC cruzada e descorrelação 2-a-2) preservando a integridade estatística, realizou-se uma varredura sistemática para extrair um **bloco contíguo de $N = 26.192$ quadros consecutivos** de \texttt{startrek\_mpeg4\_hq} ($k_{\text{ini}} = 8.992$ a $k_{\text{fim}} = 35.184$). Esse bloco preserva a f.d.p.\ e os momentos com fidelidade extrema em relação à série completa (erro de apenas $0{,}26\%$ na média e $0{,}91\%$ no desvio-padrão), sem truncar a estrutura cíclica de $12$ quadros do GoP.
+Como as sequências possuem durações amostrais distintas ($N_X = 26.192$ e $N_Y = 89.998$), para viabilizar as análises conjuntas (momentos cruzados, FAC cruzada e descorrelação 2-a-2) preservando a integridade estatística, realizou-se uma varredura sistemática para extrair um \textbf{bloco contíguo de $N = 26.192$ quadros consecutivos} de \texttt{startrek\_mpeg4\_hq} ($k_{\text{ini}} = 8.992$ a $k_{\text{fim}} = 35.184$). Esse bloco preserva a f.d.p.\ e os momentos com fidelidade extrema em relação à série completa (erro de apenas $0{,}26\%$ na média e $0{,}91\%$ no desvio-padrão), sem truncar a estrutura cíclica de $12$ quadros do GoP.
 
 A Tabela \ref{tab:momentos} consolida os momentos marginais e cruzados obtidos para as sequências.
 
@@ -359,7 +360,7 @@ As Figuras \ref{fig:descorrelacao_cruzada} e \ref{fig:facs_descorrelacionadas} c
 \end{figure}
 
 \begin{conclusaobox}{Invariância da Descorrelação frente à Normalização Gráfica}
-A descorrelação matricial opera de forma estrita sobre a **matriz de covariância** $\mathbf{K_Z}$ calculada a partir dos dados centrados dos sinais. Portanto, escalas cosméticas de plotagem da FAC (como normalizar por $\text{VMQ}$ ou por $\sigma^2$) **não exercem qualquer influência sobre os autovetores $\mathbf{Q}$ nem sobre a ortogonalidade dos sinais descorrelacionados**.
+A descorrelação matricial opera de forma estrita sobre a \textbf{matriz de covariância} $\mathbf{K_Z}$ calculada a partir dos dados centrados dos sinais. Portanto, escalas cosméticas de plotagem da FAC (como normalizar por $\text{VMQ}$ ou por $\sigma^2$) \textbf{não exercem qualquer influência sobre os autovetores $\mathbf{Q}$ nem sobre a ortogonalidade dos sinais descorrelacionados}.
 \end{conclusaobox}
 
 % ========================================================
@@ -398,9 +399,9 @@ Para avaliar empiricamente as condições de ESA, calculou-se a média móvel $\
 
 \begin{conclusaobox}{Parecer Conclusivo: Os sinais NÃO são globalmente ESA e NÃO são ESE}
 \begin{enumerate}[leftmargin=*, nosep]
-    \item \textbf{Não são Processos ESA Globalmente:} Como evidente na Figura \ref{fig:estacionariedade}, a média temporal varia drasticamente ao longo do filme ($m_X(t)$ varia entre $600$ e $1.800\text{ bits}$ no H.263, e $m_Y(t)$ transita entre $800$ e $3.200\text{ bits}$ no MPEG-4, oscilações superiores a $60\%$). Em sequências cinematográficas reais, alternam-se cenas de baixo movimento e fundos escuros no espaço sideral com sequências frenéticas de ação. Como $E[X(t)] \neq \text{cte}$, **a condição (a) de ESA é violada de maneira categórica**.
-    \item \textbf{Não são Processos ESE / EE:} Na teoria clássica de processos estocásticos (J.J.W. Cap. 7), se um processo possui segundo momento finito ($E[X^2] < \infty$), ser ESE é uma condição estritamente mais forte que ser ESA ($\text{ESE} \implies \text{ESA}$). Tendo sido violada a condição de ESA na média, **o processo não pode, sob nenhuma hipótese matemática, ser considerado ESE**.
-    \item \textbf{Aproximação Local (Ciclostacionariedade e Estacionariedade por Partes):} Dentro de tomadas de cena contínuas (\textit{shots}), o sinal pode ser modelado localmente como **estacionário por partes** (\textit{piecewise stationary}). Em adição, devido à estrutura rígida de repetição periódica do GoP ($M = 12$ quadros), o sinal MPEG-4 exibe características de **processo ciclostacionário de 2ª ordem** com período $T_0 = 12\text{ quadros}$ ($m(t + 12) = m(t)$ e $R(t+12, \tau) = R(t, \tau)$).
+    \item \textbf{Não são Processos ESA Globalmente:} Como evidente na Figura \ref{fig:estacionariedade}, a média temporal varia drasticamente ao longo do filme ($m_X(t)$ varia entre $600$ e $1.800\text{ bits}$ no H.263, e $m_Y(t)$ transita entre $800$ e $3.200\text{ bits}$ no MPEG-4, oscilações superiores a $60\%$). Em sequências cinematográficas reais, alternam-se cenas de baixo movimento e fundos escuros no espaço sideral com sequências frenéticas de ação. Como $E[X(t)] \neq \text{cte}$, \textbf{a condição (a) de ESA é violada de maneira categórica}.
+    \item \textbf{Não são Processos ESE / EE:} Na teoria clássica de processos estocásticos (J.J.W. Cap. 7), se um processo possui segundo momento finito ($E[X^2] < \infty$), ser ESE é uma condição estritamente mais forte que ser ESA ($\text{ESE} \implies \text{ESA}$). Tendo sido violada a condição de ESA na média, \textbf{o processo não pode, sob nenhuma hipótese matemática, ser considerado ESE}.
+    \item \textbf{Aproximação Local (Ciclostacionariedade e Estacionariedade por Partes):} Dentro de tomadas de cena contínuas (\textit{shots}), o sinal pode ser modelado localmente como \textbf{estacionário por partes} (\textit{piecewise stationary}). Em adição, devido à estrutura rígida de repetição periódica do GoP ($M = 12$ quadros), o sinal MPEG-4 exibe características de \textbf{processo ciclostacionário de 2ª ordem} com período $T_0 = 12\text{ quadros}$ ($m(t + 12) = m(t)$ e $R(t+12, \tau) = R(t, \tau)$).
 \end{enumerate}
 \end{conclusaobox}
 
@@ -504,8 +505,8 @@ Realizou-se a regressão linear log-log na faixa de frequências baixas ($f \in 
 
 \begin{conclusaobox}{Classificação Espectral Conclusiva dos Sinais}
 \begin{itemize}[leftmargin=*, nosep]
-    \item \textbf{Sinal H.263 (\texttt{startrek\_h263\_64k}):} O expoente estimado é $\alpha \approx \mathbf{0{,}63}$ (decaimento de $-6{,}3\text{ dB/década}$). Trata-se de um espectro do tipo **Passa-Baixas / Quase-Branco com inclinação intermediária em direção ao Ruído Rosa**. O controle estrito de taxa do canal de $64\text{ kbps}$ introduz perturbações de alta frequência que atenuam a persistência espectral puramente rosa.
-    \item \textbf{Sinal MPEG-4 (\texttt{startrek\_mpeg4\_hq}):} O expoente obtido é $\alpha \approx \mathbf{1{,}23}$ (decaimento de $-12{,}3\text{ dB/década}$). Classifica-se como **Ruído Colorido intermediário entre Rosa ($\alpha=1$) e Marrom/Vermelho ($\alpha=2$)**. Esse resultado confirma a forte persistência de autocorrelação e a autocorrelação de longo alcance (LRD) típica de fluxos de vídeo codificados em regime VBR de alta qualidade.
+    \item \textbf{Sinal H.263 (\texttt{startrek\_h263\_64k}):} O expoente estimado é $\alpha \approx \mathbf{0{,}63}$ (decaimento de $-6{,}3\text{ dB/década}$). Trata-se de um espectro do tipo \textbf{Passa-Baixas / Quase-Branco com inclinação intermediária em direção ao Ruído Rosa}. O controle estrito de taxa do canal de $64\text{ kbps}$ introduz perturbações de alta frequência que atenuam a persistência espectral puramente rosa.
+    \item \textbf{Sinal MPEG-4 (\texttt{startrek\_mpeg4\_hq}):} O expoente obtido é $\alpha \approx \mathbf{1{,}23}$ (decaimento de $-12{,}3\text{ dB/década}$). Classifica-se como \textbf{Ruído Colorido intermediário entre Rosa ($\alpha=1$) e Marrom/Vermelho ($\alpha=2$)}. Esse resultado confirma a forte persistência de autocorrelação e a autocorrelação de longo alcance (LRD) típica de fluxos de vídeo codificados em regime VBR de alta qualidade.
 \end{itemize}
 \end{conclusaobox}
 
