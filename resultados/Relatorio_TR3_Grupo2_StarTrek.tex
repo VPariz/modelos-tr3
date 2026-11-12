@@ -66,7 +66,7 @@
 Este relatório apresenta o Trabalho 3 de Modelos Probabilísticos: a análise estocástica de dois sinais de vídeo codificados do filme \textit{Star Trek} (Grupo 2). Os sinais são o número de bits por quadro de cada codificação:
 \begin{itemize}[leftmargin=*, nosep]
     \item \texttt{startrek\_h263\_64k.txt} ($X[n]$): codificado em H.263 a $64\text{ kbps}$, com $N_X = 26.192$ amostras;
-    \item \texttt{startrek\_mpeg4\_hq.txt} ($Y[n]$): codificado em MPEG-4 de alta qualidade, com $N_Y = 89.998$ amostras e GoP (\textit{Group of Pictures}) de $12$ quadros (\texttt{IBBPBBPBBPBB}).
+    \item \texttt{startrek\_mpeg4\_hq.txt} ($Y[n]$): codificado em MPEG-4 de alta qualidade, com $N_Y = 89.998$ amostras.
 \end{itemize}
 
 A teoria usada vem das aulas da professora Rosângela e dos Capítulos 6 e 7 do livro de Albuquerque, Fortes e Finamore (J.J.W.) \cite{JJW}.
@@ -124,7 +124,7 @@ Os sinais \textbf{não podem ser caracterizados por um vetor Gaussiano}, pelos m
 \begin{enumerate}[leftmargin=*, nosep]
     \item \textbf{Valores não negativos ($X[n] \ge 0$):} o número de bits nunca é negativo, mas a Gaussiana dá probabilidade a valores negativos. Pela função $Q(\alpha)$, $P(Y < 0) = Q(m_Y/\sigma_Y) = Q(1{,}3638) \approx 8{,}63\%$ no MPEG-4 e $P(X < 0) = Q(m_X/\sigma_X) = Q(2{,}1806) \approx 1{,}46\%$ no H.263.
     \item \textbf{H.263 com dois picos:} o histograma (Figura \ref{fig:histogramas}a) tem dois máximos, em torno de $750$ e $1.450\text{ bits}$, enquanto a Gaussiana tem um só.
-    \item \textbf{MPEG-4 assimétrico:} o histograma (Figura \ref{fig:histogramas}b) concentra-se em valores baixos (quadros P e B) e tem cauda longa à direita, até $12.500\text{ bits}$ (quadros I).
+    \item \textbf{MPEG-4 assimétrico:} o histograma (Figura \ref{fig:histogramas}b) concentra-se em valores baixos e tem cauda longa à direita, até $12.500\text{ bits}$.
 \end{enumerate}
 Como as marginais não são Gaussianas, o vetor não é Gaussiano.
 
@@ -253,7 +253,7 @@ As FACs estão na Figura \ref{fig:facs_individuais} e a correlação cruzada na 
 Nos gráficos:
 \begin{enumerate}[leftmargin=*, nosep]
     \item \textbf{H.263:} a curva parte de $1{,}0$ em $k = 0$ e decai até o nível DC $m_X^2/\text{VMQ}_X = 0{,}8262$ (Figura \ref{fig:facs_individuais}a).
-    \item \textbf{MPEG-4:} a curva oscila com período de $12$ quadros (Figura \ref{fig:facs_individuais}b), por causa dos quadros I do GoP. A linha escura é o ponto médio de cada ciclo de $12$ atrasos, ou seja, passa pelo meio da oscilação e não pelos picos.
+    \item \textbf{MPEG-4:} a curva oscila com período de $12$ quadros (Figura \ref{fig:facs_individuais}b): há um pico a cada $12$ atrasos, ou seja, o tamanho dos quadros se repete a cada $12$ quadros. A linha escura é o ponto médio de cada ciclo de $12$ atrasos, ou seja, passa pelo meio da oscilação e não pelos picos.
     \item \textbf{Correlação cruzada:} fica em torno de zero para todos os atrasos ($\rho_{XY}[0] = -0{,}0048$), ou seja, os dois sinais são praticamente descorrelatados.
 \end{enumerate}
 
@@ -372,7 +372,7 @@ A DEP $S(f)$ é a Transformada de Fourier da autocorrelação (Wiener-Khinchin \
 \begin{equation}
 S(f) = \sum_{k=-\infty}^{\infty} R[k]\,e^{-j 2\pi f k}
 \end{equation}
-A Figura \ref{fig:deps} mostra as DEPs, calculadas pela FFT da autocorrelação. No MPEG-4 aparecem raias em $f = m/12$, por causa do GoP de $12$ quadros.
+A Figura \ref{fig:deps} mostra as DEPs, calculadas pela FFT da autocorrelação. No MPEG-4 aparecem raias em $f = m/12$, que correspondem à repetição a cada $12$ quadros vista na FAC.
 
 \begin{figure}[!htbp]
     \centering
@@ -409,7 +409,7 @@ A cor do espectro vem da inclinação da DEP em dB por década, nas baixas frequ
 Medindo a queda da DEP entre $X = 1{,}0$ e $X = 10{,}0$ (uma década), Figura \ref{fig:cor_espectro}:
 \begin{itemize}[leftmargin=*, nosep]
     \item \textbf{H.263 (\texttt{startrek\_h263\_64k}):} queda de $10{,}05\text{ dB/década}$, \textbf{Ruído Rosa};
-    \item \textbf{MPEG-4 (\texttt{startrek\_mpeg4\_hq}):} queda de $9{,}66\text{ dB/década}$, também \textbf{Ruído Rosa}, com as raias do GoP por cima.
+    \item \textbf{MPEG-4 (\texttt{startrek\_mpeg4\_hq}):} queda de $9{,}66\text{ dB/década}$, também \textbf{Ruído Rosa}, com as raias em $f = m/12$ por cima.
 \end{itemize}
 
 \begin{figure}[!htbp]
@@ -438,7 +438,7 @@ Neste trabalho, aplicamos os conceitos de variáveis aleatórias conjuntas e pro
 \begin{enumerate}[leftmargin=*, nosep]
     \item Os sinais não são Gaussianos: só assumem valores não negativos, o H.263 tem dois picos e o MPEG-4 é assimétrico.
     \item Os momentos confirmam $\text{VMQ} = \sigma^2 + m^2$. O bloco de $26.192$ amostras do MPEG-4 manteve a média e o desvio-padrão da série completa com erro menor que $1\%$.
-    \item A FAC do H.263 decai até o nível DC. A do MPEG-4 oscila com período de $12$ quadros (GoP) e a curva central passa pelo meio das oscilações.
+    \item A FAC do H.263 decai até o nível DC. A do MPEG-4 oscila com período de $12$ quadros e a curva central passa pelo meio das oscilações.
     \item A diagonalização de $\mathbf{K}_{\underline{Z}}$ anulou a correlação em $k=0$ ($\rho_{W_1 W_2}[0] \approx 0$). Os sinais não são Gaussianos, então descorrelatados não significa independentes.
     \item Os sinais não são ESA nem EE. As DEPs caem cerca de $10\text{ dB/década}$ ($10{,}05$ no H.263 e $9{,}66$ no MPEG-4), ou seja, o espectro é Ruído Rosa.
 \end{enumerate}
