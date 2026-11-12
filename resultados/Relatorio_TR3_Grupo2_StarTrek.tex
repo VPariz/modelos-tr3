@@ -29,7 +29,7 @@
     colorlinks=false,
     pdfborder={0 0 0},
     pdftitle={Trabalho 3 - Modelos Probabilisticos - Grupo 2 (Star Trek)},
-    pdfauthor={Joao Victor Pariz e Renato Felix}
+    pdfauthor={Bruno Mariano, Jaco Medeiros Lima, Joao Victor Pariz, Lucas Quiuqui, Marcos Vinicius, Renato Felix}
 }
 
 \setlength{\parskip}{4pt}
@@ -48,7 +48,9 @@
     {\Large \textbf{TRABALHO 3}}\\[2mm]
     {\large \textbf{ANÁLISE ESTOCÁSTICA DE SINAIS DE VÍDEO CODIFICADOS}}\\[2mm]
     {\normalsize \textbf{Grupo 2 — Sequência \textit{Star Trek}}}\\[3mm]
-    {\normalsize \textbf{Alunos:} João Victor Pariz e Renato Felix}\\[1mm]
+    {\normalsize \textbf{Integrantes do Grupo:}}\\[1mm]
+    {\normalsize Bruno Mariano \quad Jacó Medeiros Lima \quad João Victor Pariz}\\[1mm]
+    {\normalsize Lucas Quiuqui \quad Marcos Vinícius \quad Renato Felix}\\[2mm]
     {\normalsize \textbf{Professora:} Rosângela Fernandes Coelho}\\[1mm]
     {\small Rio de Janeiro, 12 de novembro de 2026}\\[2mm]
     \rule{\textwidth}{0.8pt}
@@ -147,7 +149,14 @@ m_X &= E[X] = \frac{1}{N}\sum_{n=0}^{N-1} x[n], & \text{VMQ}_X &= E[X^2] = \frac
 \sigma_X^2 &= E[(X - m_X)^2] = \text{VMQ}_X - m_X^2, & \sigma_X &= \sqrt{\sigma_X^2}
 \end{align}
 
-Como o sinal H.263 possui $N_X = 26.192$ quadros e o sinal MPEG-4 possui $N_Y = 89.998$ quadros, para realizar o cálculo dos momentos conjuntos, da autocorrelação cruzada e da descorrelação 2-a-2 (Itens 2, 3 e 4) é necessário que ambas as sequências tenham o mesmo comprimento $N = 26.192$. Para que o trecho escolhido do MPEG-4 represente fielmente as características estatísticas da série original de $89.998$ amostras sem quebrar o período de $12$ quadros do GoP, selecionou-se o bloco contíguo de $N = 26.192$ amostras entre os índices $k_{\text{ini}} = 8.992$ e $k_{\text{fim}} = 35.184$, cuja média e desvio-padrão diferem em menos de $1\%$ dos valores da sequência completa. As Tabelas \ref{tab:momentos} e \ref{tab:conjuntos} reúnem todos os valores calculados.
+Como o sinal H.263 possui $N_X = 26.192$ quadros e o sinal MPEG-4 possui $N_Y = 89.998$ quadros, para realizar o cálculo dos momentos conjuntos, da autocorrelação cruzada e da descorrelação 2-a-2 (Itens 2, 3 e 4) é necessário que ambas as sequências tenham o mesmo comprimento $N = 26.192$. Para que o trecho escolhido do MPEG-4 represente fielmente as características estatísticas da série original de $89.998$ amostras sem quebrar o período de $12$ quadros do GoP, selecionou-se o bloco contíguo de $N = 26.192$ amostras entre os índices $k_{\text{ini}} = 8.992$ e $k_{\text{fim}} = 35.184$, cuja média e desvio-padrão diferem em menos de $1\%$ dos valores da sequência completa. A Figura \ref{fig:corte_mpeg4} comprova a preservação da f.d.p.\ empírica do sinal MPEG-4 após o corte. As Tabelas \ref{tab:momentos} e \ref{tab:conjuntos} reúnem todos os valores calculados.
+
+\begin{figure}[!tbp]
+    \centering
+    \includegraphics[width=0.72\linewidth]{Programas/resultados/passo3_facs/comparacao_pdf_mpeg4_cortada.png}
+    \caption{Comparação entre a f.d.p.\ empírica do sinal MPEG-4 original ($89.998$ amostras) e do bloco contíguo selecionado ($26.192$ amostras, $k = 8.992$ a $35.184$), confirmando a fidelidade da distribuição após o corte.}
+    \label{fig:corte_mpeg4}
+\end{figure}
 
 \begin{table}[!htbp]
 \centering
@@ -434,22 +443,22 @@ A Figura \ref{fig:cor_espectro} apresenta a DEP em escala log-log e a reta ajust
     \begin{subfigure}[b]{0.48\textwidth}
         \centering
         \includegraphics[width=\linewidth]{Programas/resultados/passo6_7_dep_e_espectro/cor_espectro_startrek_h263_64k.png}
-        \caption{H.263 64k ($\alpha = 0{,}63$).}
+        \caption{H.263 64k (queda de $10{,}05\text{ dB/década}$).}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.48\textwidth}
         \centering
         \includegraphics[width=\linewidth]{Programas/resultados/passo6_7_dep_e_espectro/cor_espectro_startrek_mpeg4_hq.png}
-        \caption{MPEG-4 HQ ($\alpha = 1{,}23$).}
+        \caption{MPEG-4 HQ (queda de $9{,}66\text{ dB/década}$).}
     \end{subfigure}
-    \caption{Determinação da inclinação espectral em escala log-log para classificação da cor do espectro.}
+    \caption{Determinação da inclinação da DEP em escala logarítmica e medição da queda em dB por década entre as frequências $X = 1{,}0$ e $X = 10{,}0$.}
     \label{fig:cor_espectro}
 \end{figure}
 
 Com base nas inclinações obtidas na Figura \ref{fig:cor_espectro}, conclui-se que:
 \begin{itemize}[leftmargin=*, nosep]
-    \item \textbf{Sinal H.263 (\texttt{startrek\_h263\_64k}):} Apresenta expoente $\alpha \approx 0{,}63$ (queda de $-6{,}3\text{ dB/década}$), situando-se entre o Ruído Branco ($\alpha = 0$) e o Ruído Rosa ($\alpha = 1$), com predominância de características de \textbf{Ruído Rosa} (passa-baixas moderado).
-    \item \textbf{Sinal MPEG-4 (\texttt{startrek\_mpeg4\_hq}):} Apresenta expoente $\alpha \approx 1{,}23$ (queda de $-12{,}3\text{ dB/década}$), classificando-se na faixa entre \textbf{Ruído Rosa ($\alpha = 1$) e Ruído Marrom ($\alpha = 2$)}, devido à maior concentração de energia em baixas frequências associada à correlação temporal mais longa entre os quadros.
+    \item \textbf{Sinal H.263 (\texttt{startrek\_h263\_64k}):} Apresenta uma queda de $10{,}05\text{ dB}$ por década na faixa inicial de frequências, caracterizando-se diretamente como \textbf{Ruído Rosa} (espectro do tipo $1/f$, associado a uma queda teórica de $-10\text{ dB/década}$).
+    \item \textbf{Sinal MPEG-4 (\texttt{startrek\_mpeg4\_hq}):} Apresenta uma queda de $9{,}66\text{ dB}$ por década (muito próxima do patamar de $-10\text{ dB/década}$), classificando-se igualmente como \textbf{Ruído Rosa} nas baixas frequências, sobreposto às raias harmônicas discretas periódicas originadas pela estrutura do GoP de $12$ quadros.
 \end{itemize}
 
 % ========================================================
@@ -457,7 +466,7 @@ Com base nas inclinações obtidas na Figura \ref{fig:cor_espectro}, conclui-se 
 % ========================================================
 \section*{Conclusão}
 
-A realização do trabalho permitiu aplicar os conceitos de variáveis aleatórias conjuntas e processos estocásticos a sinais reais de vídeo codificado. Verificou-se no Item 1 que nenhum dos dois sinais pode ser modelado por um vetor Gaussiano, pois ambos assumem apenas valores positivos, o H.263 tem distribuição bimodal e o MPEG-4 possui forte assimetria. No Item 2, os momentos marginais e cruzados confirmaram a relação $\text{VMQ}_X = \sigma_X^2 + m_X^2$ e mostraram que o MPEG-4 apresenta variância muito superior à do H.263. No Item 3, as FACs normalizadas pelo VMQ evidenciaram o patamar assintótico $m^2/\text{VMQ}$ e os picos periódicos a cada $12$ quadros no MPEG-4 decorrentes do GoP. No Item 4, a diagonalização da matriz de covariância anulou a correlação cruzada no atraso zero ($\rho_{W_1 W_2}[0] \approx 0$), gerando variáveis descorrelatadas (porém não independentes, já que não são Gaussianas). Por fim, nos Itens 5, 6 e 7, constatou-se que os processos não são estacionários (nem ESA, nem EE) devido à variação da média e da autocorrelação ao longo do filme, e que suas DEPs apresentam perfil passa-baixas colorido, entre Ruído Branco e Rosa para o H.263 ($\alpha = 0{,}63$) e entre Ruído Rosa e Ruído Marrom para o MPEG-4 ($\alpha = 1{,}23$).
+A realização do trabalho permitiu aplicar os conceitos de variáveis aleatórias conjuntas e processos estocásticos a sinais reais de vídeo codificado. Verificou-se no Item 1 que nenhum dos dois sinais pode ser modelado por um vetor Gaussiano, pois ambos assumem apenas valores positivos, o H.263 tem distribuição bimodal e o MPEG-4 possui forte assimetria. No Item 2, os momentos marginais e cruzados confirmaram a relação $\text{VMQ}_X = \sigma_X^2 + m_X^2$ e mostraram que o MPEG-4 apresenta variância muito superior à do H.263. No Item 3, as FACs normalizadas pelo VMQ evidenciaram o patamar assintótico $m^2/\text{VMQ}$ e os picos periódicos a cada $12$ quadros no MPEG-4 decorrentes do GoP. No Item 4, a diagonalização da matriz de covariância anulou a correlação cruzada no atraso zero ($\rho_{W_1 W_2}[0] \approx 0$), gerando variáveis descorrelatadas (porém não independentes, já que não são Gaussianas). Por fim, nos Itens 5, 6 e 7, constatou-se que os processos não são estacionários (nem ESA, nem EE) devido à variação da média e da autocorrelação ao longo do filme, e que suas DEPs apresentam perfil passa-baixas com queda em torno de $10\text{ dB/década}$ ($10{,}05\text{ dB/déc}$ para o H.263 e $9{,}66\text{ dB/déc}$ para o MPEG-4), enquadrando ambos os sinais de vídeo predominantemente na classe de Ruído Rosa nas frequências fundamentais.
 
 % ========================================================
 % REFERÊNCIAS BIBLIOGRÁFICAS
