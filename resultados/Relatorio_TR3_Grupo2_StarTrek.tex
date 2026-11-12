@@ -107,18 +107,29 @@ O presente relatório contempla a realização integral dos sete itens propostos
     \item \textbf{Processo Estocástico $Y[n]$ (\texttt{startrek\_mpeg4\_hq.txt}):} Vídeo codificado no padrão \textbf{MPEG-4 High Quality} com taxa de bits variável (VBR) de alta qualidade, estruturado em Grupos de Imagens (\textit{Group of Pictures — GoP}) regulares de tamanho $M = 12$ quadros com padrão \texttt{IBBPBBPBBPBB}, totalizando $N_Y = 89.998\text{ quadros}$.
 \end{itemize}
 
-Adota-se a notação padronizada do livro-texto de referência de Albuquerque, Fortes e Finamore (J.J.W.) e das notas de aula da disciplina: variáveis aleatórias em letras maiúsculas ($X, Y$), realizações em minúsculas ($x, y$), funções densidade de probabilidade por $f_X(x)$, média por $m_X = E[X]$, variância por $\sigma_X^2 = E[(X - m_X)^2]$, valor médio quadrático por $\text{VMQ}_X = E[X^2]$, função de autocorrelação por $R_X[k] = E[X[n]X[n+k]]$, função de autocovariância por $K_X[k] = E[(X[n]-m_X)(X[n+k]-m_X)]$ e densidade espectral de potência por $S_X(f) = \mathcal{F}\{R_X[k]\}$.
+Adota-se rigorosamente a notação oficial da disciplina e do livro-texto de Albuquerque, Fortes e Finamore (J.J.W.): variáveis aleatórias e processos estocásticos em letras maiúsculas ($X, Y, W$), valores realizados em letras minúsculas ($x, y, w$), funções densidade de probabilidade (f.d.p.) com subscrito maiúsculo e argumento minúsculo $P_X(x)$ e $P_Y(y)$, média $m_X = E[X]$, variância $\sigma_X^2 = E[(X - m_X)^2] = E[X^2] - m_X^2$, Valor Médio Quadrático $\text{VMQ}_X = E[X^2] = \sigma_X^2 + m_X^2$, função de autocorrelação $R_X[k] = E[X[n]X[n+k]]$, função de autocovariância $K_X[k] = E[(X[n]-m_X)(X[n+k]-m_X)] = R_X[k] - m_X^2$, coeficiente de correlação $\rho_{XY} = \frac{K_{XY}}{\sigma_X \sigma_Y}$ e Densidade Espectral de Potência (DEP) $S_X(f) = \mathcal{F}\{R_X[k]\}$.
 
 % ========================================================
 % ITEM 1
 % ========================================================
-\section{Séries Temporais, Histogramas e Caracterização Gaussiana (Item 1)}
+\section{Séries Temporais, Histogramas e Caracterização por Vetor Gaussiano (Item 1)}
 
 \begin{itembox}{Especificação Oficial do Item 1}
 Plotar: Os sinais e seus Histogramas. Verificar se podem ser caracterizados (PDF) por um vetor Gaussiano.
 \end{itembox}
 
-As Figuras \ref{fig:sinais_tempo} e \ref{fig:histogramas} ilustram a dinâmica temporal dos dois processos e seus respectivos histogramas empíricos normalizados (estimadores da f.d.p.), comparados às densidades Gaussianas teóricas $\mathcal{N}(m, \sigma^2)$ ajustadas com os momentos de primeira e segunda ordem calculados para cada sequência.
+\begin{teoriabox}{Definição de Vetor e Processo Conjuntamente Gaussiano (J.J.W. Cap. 6 e Cap. 7)}
+Pela Definição 7.23 do J.J.W., um processo estocástico $X[n]$ é dito Gaussiano se, para qualquer inteiro $k \ge 1$ e quaisquer instantes $n_1, n_2, \dots, n_k$, o vetor aleatório $\underline{X} = [X[n_1], X[n_2], \dots, X[n_k]]^T$ for \textbf{conjuntamente Gaussiano}, possuindo f.d.p.\ conjunta multivariada $\mathcal{N}(\underline{m}_{\underline{X}}, \mathbf{K}_{\underline{X}})$:
+\[
+P_{\underline{X}}(\underline{x}) = \frac{1}{(2\pi)^{k/2}\sqrt{\det \mathbf{K}_{\underline{X}}}} \exp\!\left(-\frac{1}{2}(\underline{x} - \underline{m}_{\underline{X}})^T \mathbf{K}_{\underline{X}}^{-1} (\underline{x} - \underline{m}_{\underline{X}})\right)
+\]
+Em particular, para $k=1$, é condição necessária que toda f.d.p.\ marginal de 1ª ordem seja uma Gaussiana unidimensional $\mathcal{N}(m_X, \sigma_X^2)$:
+\[
+P_X(x) = \frac{1}{\sqrt{2\pi\sigma_X^2}} \exp\!\left(-\frac{(x - m_X)^2}{2\sigma_X^2}\right), \qquad x \in (-\infty, +\infty)
+\]
+\end{teoriabox}
+
+As Figuras \ref{fig:sinais_tempo} e \ref{fig:histogramas} apresentam a evolução temporal dos sinais $X[n]$ e $Y[n]$ e seus histogramas empíricos normalizados ($\hat{P}_X(x)$ e $\hat{P}_Y(y)$), sobrepostos às curvas teóricas $P_X(x)$ e $P_Y(y)$ das distribuições Gaussianas de mesma média e variância.
 
 \begin{figure}[H]
     \centering
@@ -155,11 +166,15 @@ As Figuras \ref{fig:sinais_tempo} e \ref{fig:histogramas} ilustram a dinâmica t
 \end{figure}
 
 \begin{conclusaobox}{Conclusão Analítica: Os sinais NÃO podem ser caracterizados por uma PDF Gaussiana}
-A hipótese de caracterização Gaussiana é \textbf{rejeitada} para ambos os sinais, pelos seguintes motivos observados:
+A hipótese de caracterização por um vetor Gaussiano é \textbf{rejeitada} para ambos os sinais, pois uma propriedade essencial de um vetor conjuntamente Gaussiano $\underline{X} \sim \mathcal{N}(\underline{m}_{\underline{X}}, \mathbf{K}_{\underline{X}})$ (Definição 7.23 do J.J.W.) é que todas as suas variáveis aleatórias marginais devem possuir f.d.p.\ unidimensional Gaussiana, o que não se verifica pelos seguintes motivos:
 \begin{enumerate}[leftmargin=*, nosep]
-    \item \textbf{Suporte Físico Estritamente Positivo ($X[n] \ge 0$):} O tamanho de um quadro em bits é uma grandeza que só assume valores positivos. A distribuição Gaussiana teórica possui suporte em toda a reta real $(-\infty, +\infty)$, atribuindo probabilidade não nula a valores negativos (no ajuste do MPEG-4, a probabilidade teórica de valores negativos seria de aproximadamente $8{,}6\%$, o que não tem significado físico para o tráfego de vídeo).
-    \item \textbf{Formato Bimodal do Sinal H.263 ($X[n]$):} O histograma de \texttt{startrek\_h263\_64k} apresenta dois picos bem definidos (em torno de $750\text{ bits}$ e $1.450\text{ bits}$), devido à alternância dos modos de codificação e do controle de taxa. A curva Gaussiana é estritamente unimodal e simétrica.
-    \item \textbf{Forte Assimetria do Sinal MPEG-4 ($Y[n]$):} O histograma de \texttt{startrek\_mpeg4\_hq} é acentuadamente assimétrico, concentrando a grande maioria das amostras em valores menores (quadros P e B) e apresentando uma cauda longa à direita com valores de até $12.500\text{ bits}$ causados pelos quadros Intra (I).
+    \item \textbf{Suporte Físico Estritamente Positivo ($X[n] \ge 0$) e Função $Q(\alpha)$:} O tamanho de um quadro em bits só assume valores positivos. A f.d.p.\ Gaussiana teórica possui suporte em $(-\infty, +\infty)$, atribuindo probabilidade não nula a valores negativos. Utilizando a função $Q(\alpha) = \frac{1}{\sqrt{2\pi}}\int_{\alpha}^{\infty} e^{-u^2/2}\,du$ e a propriedade $Q(-\alpha) = 1 - Q(\alpha)$ (Módulo 03), a probabilidade teórica de valores negativos no modelo Gaussiano para o MPEG-4 seria:
+    \[
+    P(Y < 0) = 1 - Q\!\left(\frac{0 - m_Y}{\sigma_Y}\right) = Q\!\left(\frac{m_Y}{\sigma_Y}\right) = Q\!\left(\frac{1.644{,}81}{1.206{,}03}\right) = Q(1{,}3638) \approx 8{,}63\%
+    \]
+    e para o H.263 seria $P(X < 0) = Q(m_X/\sigma_X) = Q(2{,}1806) \approx 1{,}46\%$, o que não possui significado físico para o tráfego de vídeo.
+    \item \textbf{Formato Bimodal do Sinal H.263 ($X[n]$):} O histograma de \texttt{startrek\_h263\_64k} apresenta dois picos bem definidos (em torno de $750\text{ bits}$ e $1.450\text{ bits}$), devido à alternância dos modos de codificação e do controle de taxa, enquanto a curva Gaussiana teórica $P_X(x)$ é estritamente unimodal e simétrica em torno de $m_X$.
+    \item \textbf{Forte Assimetria do Sinal MPEG-4 ($Y[n]$):} O histograma de \texttt{startrek\_mpeg4\_hq} é acentuadamente assimétrico, concentrando a maioria das amostras em valores menores (quadros P e B) e apresentando uma cauda longa à direita com valores de até $12.500\text{ bits}$ causados pelos quadros Intra (I).
 \end{enumerate}
 \end{conclusaobox}
 
@@ -297,31 +312,33 @@ As Figuras \ref{fig:facs_individuais} e \ref{fig:fac_cruzada} apresentam as FACs
 Descorrelatar 2-a-2.
 \end{itembox}
 
-\begin{teoriabox}{Fundamentação Teórica: Diagonalização da Matriz de Covariância por Autovetores (J.J.W. Cap. 6)}
+\begin{teoriabox}{Fundamentação Teórica: Descorrelação e Diagonalização de $\mathbf{K}_{\underline{Z}}$ (J.J.W. Cap. 6 e Módulo 01)}
+Duas variáveis aleatórias $W_1$ e $W_2$ são ditas \textbf{descorrelatadas} se e somente se sua covariância cruzada for nula: $K_{W_1 W_2} = E[W_1 W_2] - m_{W_1}m_{W_2} = 0 \iff E[W_1 W_2] = E[W_1]E[W_2] \iff \rho_{W_1 W_2} = 0$.
+
 Considerando o vetor aleatório bidimensional centrado $\underline{\widetilde{Z}}[n] = \begin{bmatrix} X[n] - m_X \\ Y_{\text{bloco}}[n] - m_Y \end{bmatrix}$, sua matriz de covariância é simétrica e real:
 \[
-\mathbf{K_Z} = E[\underline{\widetilde{Z}}\,\underline{\widetilde{Z}}^T] = \begin{bmatrix} \sigma_X^2 & K_{XY}[0] \\ K_{XY}[0] & \sigma_Y^2 \end{bmatrix} = \begin{bmatrix} 254.130{,}0822 & -2.963{,}9094 \\ -2.963{,}9094 & 1.481.147{,}7026 \end{bmatrix}
+\mathbf{K}_{\underline{Z}} = E[\underline{\widetilde{Z}}\,\underline{\widetilde{Z}}^T] = \begin{bmatrix} \sigma_X^2 & K_{XY}[0] \\ K_{XY}[0] & \sigma_Y^2 \end{bmatrix} = \begin{bmatrix} 254.130{,}0822 & -2.963{,}9094 \\ -2.963{,}9094 & 1.481.147{,}7026 \end{bmatrix}
 \]
-Pelo Teorema Espectral de Matrizes Reais Simétricas, existe uma transformação ortogonal $\mathbf{Q}$ cujas colunas são os autovetores ortonormais de $\mathbf{K_Z}$ ($\mathbf{Q}^T \mathbf{Q} = \mathbf{I}$), de modo que:
+Para descorrelatar as componentes de um vetor aleatório 2D (J.J.W. Cap. 6), aplica-se uma transformação linear ortogonal $\underline{W}[n] = \mathbf{Q}^T \underline{\widetilde{Z}}[n] = \begin{bmatrix} W_1[n] \\ W_2[n] \end{bmatrix}$, onde as colunas de $\mathbf{Q}$ são os autovetores ortonormais de $\mathbf{K}_{\underline{Z}}$ ($\mathbf{Q}^T \mathbf{Q} = \mathbf{I}$), equivalendo a uma rotação de eixos pelo ângulo $\theta$ dado por $\tan(2\theta) = \frac{2K_{XY}[0]}{\sigma_X^2 - \sigma_Y^2}$:
 \[
-\mathbf{K_W} = \mathbf{Q}^T \mathbf{K_Z} \mathbf{Q} = \begin{bmatrix} \lambda_1 & 0 \\ 0 & \lambda_2 \end{bmatrix}
+\mathbf{K}_{\underline{W}} = \mathbf{Q}^T \mathbf{K}_{\underline{Z}} \mathbf{Q} = \begin{bmatrix} \lambda_1 & 0 \\ 0 & \lambda_2 \end{bmatrix} \implies K_{W_1 W_2}[0] = E[W_1 W_2] = 0
 \]
-onde $\lambda_1, \lambda_2$ são os autovalores de $\mathbf{K_Z}$. O novo vetor aleatório $\underline{W}[n] = \mathbf{Q}^T \underline{\widetilde{Z}}[n] = \begin{bmatrix} W_1[n] \\ W_2[n] \end{bmatrix}$ possui componentes estritamente descorrelacionadas entre si no atraso zero: $\text{Cov}(W_1, W_2) = E[W_1 W_2] = 0$.
+onde $\lambda_1 = \sigma_{W_1}^2$ e $\lambda_2 = \sigma_{W_2}^2$ são os autovalores de $\mathbf{K}_{\underline{Z}}$.
 \end{teoriabox}
 
-Resolvendo o polinômio característico $\det(\mathbf{K_Z} - \lambda \mathbf{I}) = 0$, obtêm-se:
+Resolvendo a equação característica $\det(\mathbf{K}_{\underline{Z}} - \lambda \mathbf{I}) = 0$, obtêm-se as variâncias das componentes descorrelatadas:
 \[
-\lambda_1 = 254.122{,}9224\text{ bits}^2 \qquad \text{e} \qquad \lambda_2 = 1.481.154{,}8624\text{ bits}^2
+\lambda_1 = \sigma_{W_1}^2 = 254.122{,}9224\text{ bits}^2 \qquad \text{e} \qquad \lambda_2 = \sigma_{W_2}^2 = 1.481.154{,}8624\text{ bits}^2
 \]
-A matriz modal ortonormal de projeção $\mathbf{Q}$ associada é:
+A matriz ortogonal de autovetores $\mathbf{Q}$ associada é:
 \[
 \mathbf{Q} = \begin{bmatrix} -0{,}999997 & -0{,}002416 \\ -0{,}002416 & \phantom{-}0{,}999997 \end{bmatrix}
 \]
-Aplicando a transformação $\underline{W}[n] = \mathbf{Q}^T (\underline{Z}[n] - \underline{m}_Z)$, calcula-se o coeficiente de correlação cruzada resultante no atraso zero:
+Aplicando a transformação $\underline{W}[n] = \mathbf{Q}^T (\underline{Z}[n] - \underline{m}_{\underline{Z}})$, calcula-se o coeficiente de correlação linear resultante no atraso zero:
 \[
-\rho_{W_1 W_2}[0] = \frac{E[W_1 W_2]}{\sqrt{\lambda_1 \lambda_2}} = 9{,}27 \times 10^{-19} \approx \mathbf{0{,}0000}
+\rho_{W_1 W_2}[0] = \frac{K_{W_1 W_2}[0]}{\sqrt{\lambda_1 \lambda_2}} = \frac{E[W_1 W_2]}{\sigma_{W_1}\sigma_{W_2}} = 9{,}27 \times 10^{-19} \approx \mathbf{0{,}0000}
 \]
-As Figuras \ref{fig:descorrelacao_cruzada} e \ref{fig:facs_descorrelacionadas} comprovam visual e analiticamente a anulação exata da correlação cruzada em $k=0$ e as FACs dos sinais descorrelacionados $W_1[n]$ e $W_2[n]$.
+As Figuras \ref{fig:descorrelacao_cruzada} e \ref{fig:facs_descorrelacionadas} comprovam visual e analiticamente a anulação exata da covariância cruzada em $k=0$ e as FACs dos sinais descorrelatados $W_1[n]$ e $W_2[n]$.
 
 \begin{figure}[H]
     \centering
@@ -357,8 +374,11 @@ As Figuras \ref{fig:descorrelacao_cruzada} e \ref{fig:facs_descorrelacionadas} c
     \label{fig:facs_descorrelacionadas}
 \end{figure}
 
-\begin{conclusaobox}{Invariância da Descorrelação frente à Normalização Gráfica}
-A descorrelação matricial opera de forma estrita sobre a \textbf{matriz de covariância} $\mathbf{K_Z}$ calculada a partir dos dados centrados dos sinais. Portanto, escalas cosméticas de plotagem da FAC (como normalizar por $\text{VMQ}$ ou por $\sigma^2$) \textbf{não exercem qualquer influência sobre os autovetores $\mathbf{Q}$ nem sobre a ortogonalidade dos sinais descorrelacionados}.
+\begin{conclusaobox}{Observação Teórica (Descorrelação vs.\ Independência) e Invariância Gráfica}
+\begin{enumerate}[leftmargin=*, nosep]
+    \item \textbf{Descorrelação não implica Independência Estatística (Módulo 01):} Como visto no Item 1, os sinais de vídeo não são caracterizados por um vetor conjuntamente Gaussiano. Portanto, embora $W_1[n]$ e $W_2[n]$ sejam estritamente \textbf{descorrelatadas} ($K_{W_1 W_2}[0] = 0$), não se pode afirmar que sejam estatisticamente independentes ($P_{W_1, W_2}(w_1, w_2) \neq P_{W_1}(w_1)P_{W_2}(w_2)$), pois a equivalência entre descorrelação e independência vale apenas para vetores conjuntamente Gaussianos (Módulo 02).
+    \item \textbf{Invariância frente à Normalização Gráfica da FAC:} A descorrelação matricial opera sobre a matriz de covariância $\mathbf{K}_{\underline{Z}}$ calculada a partir das amostras centradas dos sinais. Portanto, a escolha de escala vertical nos gráficos da FAC (normalizar por $R[0] = \text{VMQ}$ ou por $\sigma^2$) não altera os autovetores de $\mathbf{Q}$ nem a condição $K_{W_1 W_2}[0] = 0$.
+\end{enumerate}
 \end{conclusaobox}
 
 % ========================================================
@@ -370,23 +390,23 @@ A descorrelação matricial opera de forma estrita sobre a \textbf{matriz de cov
 Os sinais podem ser considerados processos ESA? EE?
 \end{itembox}
 
-\begin{teoriabox}{Definições Formais de Estacionariedade (J.J.W. Cap. 7, págs. 246–247)}
+\begin{teoriabox}{Definições Formais de Estacionariedade (J.J.W. Cap. 7, págs. 246–247 e Módulo 03)}
 \begin{itemize}[leftmargin=*, nosep]
-    \item \textbf{Definição 7.8 (Estacionariedade de Ordem $m$):} Um processo estocástico $X(t)$ é dito estacionário de ordem $m$ se a densidade de probabilidade conjunta de suas amostras em quaisquer instantes $t_1, t_2, \dots, t_m$ for invariante a qualquer deslocamento temporal $\tau$:
+    \item \textbf{Definição 7.8 (Estacionariedade de Ordem $m$):} Um processo estocástico $X(t)$ é dito estacionário de ordem $m$ se a função densidade de probabilidade conjunta de suas amostras em quaisquer instantes $t_1, t_2, \dots, t_m$ for invariante a qualquer deslocamento temporal $\tau$:
     \[
-    f_{X(t_1), X(t_2), \dots, X(t_m)}(x_1, x_2, \dots, x_m) = f_{X(t_1+\tau), X(t_2+\tau), \dots, X(t_m+\tau)}(x_1, x_2, \dots, x_m), \quad \forall \tau
+    P_{X(t_1), X(t_2), \dots, X(t_m)}(x_1, x_2, \dots, x_m) = P_{X(t_1+\tau), X(t_2+\tau), \dots, X(t_m+\tau)}(x_1, x_2, \dots, x_m), \quad \forall \tau
     \]
-    \item \textbf{Definição 7.9 (Estacionariedade no Sentido Estrito — ESE / EE):} Um processo $X(t)$ é dito Estacionário no Sentido Estrito se for estacionário de ordem $m$ para \textbf{todo} inteiro positivo $m \ge 1$.
-    \item \textbf{Definição 7.10 (Estacionariedade no Sentido Amplo — ESA / WSS):} Um processo $X(t)$ é dito Estacionário no Sentido Amplo se atender simultaneamente a:
+    \item \textbf{Definição 7.9 (Estacionariedade no Sentido Estrito — EE):} Um processo $X(t)$ é dito Estacionário no Sentido Estrito (EE) se for estacionário de ordem $m$ para \textbf{todo} inteiro positivo $m \ge 1$.
+    \item \textbf{Definição 7.10 (Estacionariedade no Sentido Amplo — ESA):} Um processo $X(t)$ é dito Estacionário no Sentido Amplo (ESA) se atender simultaneamente às condições:
     \begin{enumerate}[label=(\alph*), nosep]
-        \item O valor médio é constante no tempo: $m_X(t) = E[X(t)] = \text{constante}, \;\forall t$.
-        \item A função de autocorrelação depende apenas da diferença temporal $\tau = t_2 - t_1$: $R_X(t_1, t_2) = R_X(\tau)$.
-        \item Potência média finita: $R_X(0) < \infty$.
+        \item O valor esperado (média) é constante e independe do tempo: $m_X(t) = E[X(t)] = m_X = \text{constante}, \;\forall t$.
+        \item A função de autocorrelação depende apenas da diferença temporal $\tau = t_2 - t_1$: $R_X(t_1, t_2) = E[X(t_1)X(t_2)] = R_X(\tau)$.
+        \item Potência média finita: $E[X^2(t)] = R_X(0) < \infty$.
     \end{enumerate}
 \end{itemize}
 \end{teoriabox}
 
-Para avaliar empiricamente as condições de ESA, calculou-se a média móvel $\hat{m}(t)$ e a variância móvel $\hat{\sigma}^2(t)$ através de janelas temporais deslizantes de $W = 1.000\text{ quadros}$ ($\approx 40\text{ segundos}$ de vídeo), conforme ilustrado na Figura \ref{fig:estacionariedade}.
+Para verificar as duas condições de ESA nas séries temporais de vídeo, calculou-se a média móvel $\hat{m}_X(t)$ e a variância móvel $\hat{\sigma}_X^2(t)$ através de janelas temporais deslizantes de $W = 1.000\text{ quadros}$ ($\approx 40\text{ segundos}$ de vídeo), conforme ilustrado na Figura \ref{fig:estacionariedade}.
 
 \begin{figure}[H]
     \centering
@@ -396,11 +416,11 @@ Para avaliar empiricamente as condições de ESA, calculou-se a média móvel $\
 \end{figure}
 
 \begin{conclusaobox}{Conclusão sobre a Estacionariedade (Item 5)}
-Com base nas Definições 7.8, 7.9 e 7.10 do livro do J.J.W. (Capítulo 7), conclui-se que:
+Com base nas Definições 7.8, 7.9 e 7.10 do livro do J.J.W. (Capítulo 7) e no Módulo 03 de aula, conclui-se que:
 \begin{enumerate}[leftmargin=*, nosep]
-    \item \textbf{Os sinais NÃO são processos ESA:} Para ser ESA (Definição 7.10), a média $m_X(t) = E[X(t)]$ deve ser estritamente constante para todo $t$ e a autocorrelação $R_X(t_1, t_2)$ deve depender unicamente da diferença temporal $\tau = t_2 - t_1$. Como observado na Figura \ref{fig:estacionariedade}, a média temporal calculada em janelas ao longo do vídeo varia consideravelmente (oscilações superiores a $60\%$ entre cenas mais escuras/calmas e cenas de ação). Havendo variação da média ao longo do tempo ($E[X(t)] \neq \text{constante}$), a condição essencial de ESA é violada.
-    \item \textbf{Os sinais NÃO são processos EE:} A Estacionariedade no Sentido Estrito (Definição 7.9) exige que as distribuições de probabilidade conjuntas de qualquer ordem sejam invariantes a translações no tempo. Como a dinâmica das cenas altera a distribuição ao longo do tempo e qualquer processo com segundo momento finito que seja EE é obrigatoriamente ESA ($\text{EE} \implies \text{ESA}$), a violação de ESA implica diretamente que os sinais \textbf{não são processos EE}.
-    \item \textbf{Influência da estrutura do GoP:} No caso do MPEG-4, a correlação entre quadros depende também da posição do quadro dentro do ciclo de $12$ quadros do GoP (um quadro I apresenta correlação muito mais intensa que quadros B), mostrando que a correlação não depende puramente da defasagem temporal, o que reforça que o sinal não é estacionário.
+    \item \textbf{Verificação da 1ª Condição de ESA ($m_X(t) = \text{constante}$):} Como observado na Figura \ref{fig:estacionariedade}, a média temporal calculada em janelas ao longo do vídeo varia fortemente com o tempo $t$ (oscilações superiores a $60\%$ entre cenas paradas/escuras e cenas de movimentação intensa). Logo, $m_X(t) = E[X(t)] \neq \text{constante}$.
+    \item \textbf{Verificação da 2ª Condição de ESA ($R_X(t_1, t_2) = R_X(\tau)$):} A variância local $\sigma_X^2(t)$ e o valor médio quadrático $R_X(t, t) = E[X^2(t)]$ também sofrem fortes variações ao longo do filme. Além disso, no sinal MPEG-4, o produto $E[Y[n_1]Y[n_2]]$ depende dos instantes absolutos $n_1$ e $n_2$ dentro da estrutura do GoP de $12$ quadros (quadros I possuem potência muito superior aos quadros P e B), e não apenas da diferença $k = n_2 - n_1$.
+    \item \textbf{Conclusão Formal (ESA e EE):} Como $m_X(t)$ varia com $t$ e $R_X(t_1, t_2)$ depende dos instantes absolutos $t_1$ e $t_2$ (e não apenas de $\tau = t_2 - t_1$), \textbf{os sinais NÃO são estacionários em nenhum sentido (nem ESA, nem EE)}. Cabe recordar que todo processo EE com segundo momento finito é necessariamente ESA ($\text{EE} \implies \text{ESA}$); portanto, a violação de ESA implica diretamente que os processos não são EE.
 \end{enumerate}
 \end{conclusaobox}
 
@@ -413,19 +433,19 @@ Com base nas Definições 7.8, 7.9 e 7.10 do livro do J.J.W. (Capítulo 7), conc
 Plotar as DEPs.
 \end{itembox}
 
-\begin{teoriabox}{O Teorema de Wiener-Khinchin (J.J.W. Cap. 7, pág. 256)}
-Para um processo discreto no tempo com autocorrelação $R_X[k]$, a Densidade Espectral de Potência (DEP) $S_X(f)$ é rigorosamente a Transformada de Fourier da sequência de autocorrelação:
+\begin{teoriabox}{Relação de Wiener-Khinchin e Propriedades da DEP (J.J.W. Cap. 7, pág. 256 e Módulo 03)}
+A Densidade Espectral de Potência (DEP) $S_X(f)$ descreve como a potência média de um processo se distribui no domínio da frequência, formando um par de Transformada de Fourier com a função de autocorrelação (Teorema de Wiener-Khinchin):
 \[
-S_X(f) = \mathcal{F}\big\{ R_X[k] \big\} = \sum_{k=-\infty}^{\infty} R_X[k] e^{-j 2\pi f k}, \qquad f \in [-0{,}5; +0{,}5] \text{ ciclos/amostra}
+S_X(f) = \mathcal{F}\big\{ R_X(\tau) \big\} \longleftrightarrow R_X(\tau) = \mathcal{F}^{-1}\big\{ S_X(f) \big\}
 \]
-A potência total média do processo é a integral da DEP no intervalo fundamental:
+No domínio discreto, com frequência normalizada $f \in [-0{,}5; +0{,}5]\text{ ciclos/amostra}$:
 \[
-P_{\text{total}} = \text{VMQ}_X = R_X[0] = \int_{-0{,}5}^{0{,}5} S_X(f)\,df
+S_X(f) = \sum_{k=-\infty}^{\infty} R_X[k] e^{-j 2\pi f k}, \qquad P_X = E[X^2[n]] = \text{VMQ}_X = R_X[0] = \int_{-0{,}5}^{0{,}5} S_X(f)\,df
 \]
-Como o processo possui média não nula ($m_X \neq 0$), a componente contínua manifesta-se no espectro como um impulso de Dirac na frequência zero: $m_X^2 \delta(f)$.
+Propriedades da DEP vistas em aula: (i) $S_X(f) \ge 0$ para todo $f$ (real e não-negativa); (ii) $S_X(-f) = S_X(f)$ (função par para processos reais); e (iii) uma componente contínua $m_X \neq 0$ produz um impulso de Dirac na origem $m_X^2 \delta(f)$.
 \end{teoriabox}
 
-As DEPs foram estimadas computacionalmente através do método do periodograma médio de Welch com janelamento de Hanning (tamanho de segmento de $2.048$ amostras e $50\%$ de sobreposição), permitindo mitigar a variância do estimador e revelar as características espectrais finas em escala logarítmica ($\text{dB} = 10\log_{10} S(f)$). A Figura \ref{fig:deps} exibe as DEPs obtidas para ambos os sinais.
+Em conformidade com a definição da DEP como Transformada de Fourier da autocorrelação (e com a rotina de referência \texttt{dep.m} disponibilizada para o trabalho), as DEPs foram obtidas aplicando a Transformada Rápida de Fourier (\texttt{fft}) sobre a autocorrelação e pelo método do periodograma médio de Welch (segmentos de $2.048$ amostras com janela de Hanning e $50\%$ de sobreposição), que reduz o ruído de estimação espectral em séries longas mantendo a mesma envoltória e raias de frequência em escala logarítmica ($\text{dB} = 10\log_{10} S_X(f)$). A Figura \ref{fig:deps} exibe as DEPs obtidas para ambos os sinais.
 
 \begin{figure}[H]
     \centering
@@ -470,16 +490,20 @@ As DEPs foram estimadas computacionalmente através do método do periodograma m
 Qual a cor do espectro de cada um dos sinais de vídeo.
 \end{itembox}
 
-\begin{teoriabox}{Classificação Teórica de Cores de Ruído (Processos $1/f^\alpha$)}
-A coloração do espectro de potência é classificada a partir do expoente de decaimento $\alpha$ na lei de potências nas frequências baixas ($f \to 0$):
+\begin{teoriabox}{Ruído Branco (Definição 7.11 J.J.W.) e Cores de Ruído (Processos $1/f^\alpha$)}
+Na teoria de processos estocásticos (J.J.W. Cap. 7, pág. 257 e Módulo 03), um processo $W(t)$ é classificado como \textbf{Ruído Branco} quando sua DEP é constante em todas as frequências e sua autocorrelação é um impulso na origem:
 \[
-S(f) \propto \frac{1}{f^\alpha} \implies 10\log_{10} S(f) = -10\alpha \log_{10} f + C
+S_W(f) = \frac{N_0}{2} = \text{constante} \;\;(\forall f) \longleftrightarrow R_W(\tau) = \frac{N_0}{2}\delta(\tau) \quad \text{(no tempo discreto: } R_W[k] = \sigma_W^2 \delta[k]\text{)}
 \]
-Na teoria de ruídos coloridos, os principais regimes espectrais são:
+De forma mais geral, a coloração do espectro de potência é classificada a partir do expoente de decaimento $\alpha$ na lei de potências nas frequências baixas ($f \to 0$):
+\[
+S_X(f) \propto \frac{1}{f^\alpha} \implies 10\log_{10} S_X(f) = -10\alpha \log_{10} f + C
+\]
+Os principais regimes espectrais de cor de ruído são:
 \begin{itemize}[leftmargin=*, nosep]
-    \item \textbf{Ruído Branco ($\alpha = 0$):} Espectro rigorosamente plano ($0\text{ dB/década}$); amostras temporalmente descorrelacionadas.
-    \item \textbf{Ruído Rosa ($\alpha = 1$):} Decaimento de $-10\text{ dB/década}$ ($1/f$); espectro com decaimento suave nas frequências baixas.
-    \item \textbf{Ruído Marrom ($\alpha = 2$):} Decaimento de $-20\text{ dB/década}$ ($1/f^2$); processo integral de ruído branco (movimento Browniano).
+    \item \textbf{Ruído Branco ($\alpha = 0$):} Espectro plano ($0\text{ dB/década}$, $S_X(f) = \text{constante}$); amostras descorrelatadas entre instantes distintos ($R_X[k] = 0$ para $k \neq 0$).
+    \item \textbf{Ruído Rosa ($\alpha = 1$):} Decaimento de $-10\text{ dB/década}$ ($S_X(f) \propto 1/f$); concentração moderada de potência em baixas frequências.
+    \item \textbf{Ruído Marrom ($\alpha = 2$):} Decaimento acentuado de $-20\text{ dB/década}$ ($S_X(f) \propto 1/f^2$); forte concentração de energia nas baixas frequências e correlação temporal lenta.
 \end{itemize}
 \end{teoriabox}
 
