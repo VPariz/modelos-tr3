@@ -479,7 +479,7 @@ Na teoria de ruídos coloridos, os principais regimes espectrais são:
 \begin{itemize}[leftmargin=*, nosep]
     \item \textbf{Ruído Branco ($\alpha = 0$):} Espectro rigorosamente plano ($0\text{ dB/década}$); amostras temporalmente descorrelacionadas.
     \item \textbf{Ruído Rosa ($\alpha = 1$):} Decaimento de $-10\text{ dB/década}$ ($1/f$); espectro com decaimento suave nas frequências baixas.
-    \item \textbf{Ruído Marrom / Vermelho ($\alpha = 2$):} Decaimento de $-20\text{ dB/década}$ ($1/f^2$); processo integral de ruído branco (movimento Browniano).
+    \item \textbf{Ruído Marrom ($\alpha = 2$):} Decaimento de $-20\text{ dB/década}$ ($1/f^2$); processo integral de ruído branco (movimento Browniano).
 \end{itemize}
 \end{teoriabox}
 
@@ -505,7 +505,7 @@ Realizou-se a regressão linear log-log na faixa de frequências baixas ($f \in 
 \begin{conclusaobox}{Classificação Espectral dos Sinais (Item 7)}
 \begin{itemize}[leftmargin=*, nosep]
     \item \textbf{Sinal H.263 (\texttt{startrek\_h263\_64k}):} O expoente estimado é $\alpha \approx \mathbf{0{,}63}$ (decaimento de $-6{,}3\text{ dB/década}$). Trata-se de um espectro do tipo \textbf{Passa-Baixas / Quase-Branco com tendência a Ruído Rosa}. O controle estrito de taxa de $64\text{ kbps}$ introduz variações mais rápidas entre quadros adjacentes, tornando o espectro mais uniforme que o do MPEG-4.
-    \item \textbf{Sinal MPEG-4 (\texttt{startrek\_mpeg4\_hq}):} O expoente obtido é $\alpha \approx \mathbf{1{,}23}$ (decaimento de $-12{,}3\text{ dB/década}$). Classifica-se como \textbf{Ruído Colorido intermediário entre Ruído Rosa ($\alpha=1$) e Ruído Marrom/Vermelho ($\alpha=2$)}. Esse comportamento reflete a grande concentração de potência em baixas frequências provocada pela forte correlação temporal entre quadros do vídeo.
+    \item \textbf{Sinal MPEG-4 (\texttt{startrek\_mpeg4\_hq}):} O expoente obtido é $\alpha \approx \mathbf{1{,}23}$ (decaimento de $-12{,}3\text{ dB/década}$). Classifica-se como \textbf{Ruído Colorido intermediário entre Ruído Rosa ($\alpha=1$) e Ruído Marrom ($\alpha=2$)}. Esse comportamento reflete a grande concentração de potência em baixas frequências provocada pela forte correlação temporal entre quadros do vídeo.
 \end{itemize}
 \end{conclusaobox}
 

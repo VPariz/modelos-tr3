@@ -50,9 +50,9 @@ for nome, s, cor in zip(nomes_ordenados, sinais_ordenados, cores):
     elif 0.8 <= alpha <= 1.2:
         cor_espectro = "Rosa (1/f)"
     elif 1.2 < alpha < 1.8:
-        cor_espectro = "Colorido entre Rosa e Marrom/Vermelho (alpha ~ 1.3)"
+        cor_espectro = "Colorido entre Rosa e Marrom (alpha ~ 1.3)"
     else:
-        cor_espectro = "Marrom / Vermelho (1/f^2)"
+        cor_espectro = "Marrom (1/f^2)"
 
     deps_dados[nome] = (freqs, psd_db_norm, alpha, cor_espectro, cor)
     resultados_analise.append({
