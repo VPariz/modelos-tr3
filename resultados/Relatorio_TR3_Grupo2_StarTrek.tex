@@ -1,0 +1,537 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[brazilian]{babel}
+\usepackage{lmodern}
+\usepackage{amsmath, amsfonts, amssymb, mathtools}
+\usepackage{geometry}
+\usepackage{graphicx}
+\usepackage{subcaption}
+\usepackage{float}
+\usepackage{xcolor}
+\usepackage{tcolorbox}
+\tcbuselibrary{skins, breakable}
+\usepackage{enumitem}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{hyperref}
+\usepackage{fancyhdr}
+
+\geometry{left=1.8cm, right=1.8cm, top=2.2cm, bottom=2.2cm}
+
+% Paleta de Cores Institucionais IME
+\definecolor{imeblue}{RGB}{20, 45, 95}
+\definecolor{imesub}{RGB}{40, 80, 140}
+\definecolor{imegreen}{RGB}{22, 101, 52}
+\definecolor{imered}{RGB}{153, 27, 27}
+\definecolor{boxbg}{RGB}{248, 250, 252}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=imeblue,
+    citecolor=imeblue,
+    urlcolor=imeblue,
+    pdftitle={Relatorio Trabalho 3 (TR3) - Analise Estocastica de Sinais de Video Codificados - Grupo 2 (Star Trek)},
+    pdfauthor={Joao Victor Pariz e Renato Felix - Modelos Probabilisticos (EE-03247) - IME}
+}
+
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0.5pt}
+\renewcommand{\footrulewidth}{0.5pt}
+\fancyhead[L]{\small\color{gray}\textbf{Modelos Probabilísticos (EE-03247) • IME}}
+\fancyhead[R]{\small\color{gray}\textbf{Trabalho 3 (TR3) — Grupo 2: \texttt{Star Trek} (H.263 vs MPEG-4)}}
+\fancyfoot[L]{\small\color{gray}\textit{Análise Estocástica de Sinais de Vídeo Codificados — Profa. Rosângela F. Coelho}}
+\fancyfoot[R]{\small\textbf{\thepage}}
+
+\tcbset{
+    enhanced,
+    arc=2mm,
+    fonttitle=\bfseries\normalsize,
+    top=2.5mm, bottom=2.5mm, left=3.5mm, right=3.5mm,
+    boxrule=0.7pt
+}
+
+\newtcolorbox{itembox}[1]{
+    breakable,
+    colback=boxbg,
+    colframe=imeblue,
+    coltitle=white,
+    title={#1}
+}
+
+\newtcolorbox{conclusaobox}[1]{
+    breakable,
+    colback=green!5!white,
+    colframe=imegreen,
+    coltitle=white,
+    title={Síntese Analítica \& Conclusão Física: #1}
+}
+
+\newtcolorbox{teoriabox}[1]{
+    breakable,
+    colback=blue!5!white,
+    colframe=imesub,
+    coltitle=white,
+    title={Fundamentação Teórica (J.J.W. / Apostila): #1}
+}
+
+\begin{document}
+
+% ========================================================
+% CABEÇALHO DO RELATÓRIO
+% ========================================================
+\begin{center}
+    {\large \textbf{INSTITUTO MILITAR DE ENGENHARIA — IME}}\\[1.5mm]
+    {\normalsize \textbf{DEPARTAMENTO DE ENGENHARIA ELÉTRICA E DE SISTEMAS (SE/3)}}\\[1.5mm]
+    {\normalsize \textbf{DISCIPLINA: EE-03247 — MODELOS PROBABILÍSTICOS (2026/3)}}\\[3mm]
+    \rule{\textwidth}{1.5pt}\\[3mm]
+    {\LARGE \textbf{\color{imeblue}TRABALHO 3 (TR3)}}\\[2mm]
+    {\large \textbf{ANÁLISE ESTOCÁSTICA DE SINAIS DE VÍDEO CODIFICADOS}}\\[1.5mm]
+    {\normalsize \textbf{Grupo 2 — Sequência \texttt{Star Trek}: \texttt{startrek\_h263\_64k.txt} ($X[n]$) e \texttt{startrek\_mpeg4\_hq.txt} ($Y[n]$)}}\\[2mm]
+    {\normalsize \textbf{Alunos:} João Victor Pariz e Renato Felix}\\[1.5mm]
+    {\small \textit{Professora: Rosângela Fernandes Coelho, Dr.\ (Télécom Paris / ENST) • Data de Entrega: 12/11/2026}}\\[2mm]
+    \rule{\textwidth}{1.5pt}
+\end{center}
+
+\vspace{2mm}
+
+% ========================================================
+% INTRODUÇÃO E MODELAGEM
+% ========================================================
+\section*{Introdução e Modelagem Estocástica dos Traços de Vídeo}
+
+O presente relatório contempla a realização integral dos sete itens propostos no Trabalho 3 (TR3), tendo como objeto de estudo o tráfego estocástico gerado por sinais reais de vídeo codificado da sequência \textit{Star Trek}. Os sinais analisados representam o tamanho em bits por quadro (\textit{frame size traces}) sob dois padrões clássicos de codificação de vídeo digital:
+\begin{itemize}[leftmargin=*, nosep]
+    \item \textbf{Processo Estocástico $X[n]$ (\texttt{startrek\_h263\_64k.txt}):} Vídeo codificado no padrão \textbf{H.263} com controle de taxa constante direcionado a canal de $64\text{ kbps}$, totalizando $N_X = 26.192\text{ quadros}$.
+    \item \textbf{Processo Estocástico $Y[n]$ (\texttt{startrek\_mpeg4\_hq.txt}):} Vídeo codificado no padrão \textbf{MPEG-4 High Quality} com taxa de bits variável (VBR) de alta qualidade, estruturado em Grupos de Imagens (\textit{Group of Pictures — GoP}) regulares de tamanho $M = 12$ quadros com padrão \texttt{IBBPBBPBBPBB}, totalizando $N_Y = 89.998\text{ quadros}$.
+\end{itemize}
+
+Adota-se a notação padronizada do livro-texto de referência de Albuquerque, Fortes e Finamore (J.J.W.) e das notas de aula da disciplina: variáveis aleatórias em letras maiúsculas ($X, Y$), realizações em minúsculas ($x, y$), funções densidade de probabilidade por $f_X(x)$, média por $m_X = E[X]$, variância por $\sigma_X^2 = E[(X - m_X)^2]$, valor médio quadrático por $\text{VMQ}_X = E[X^2]$, função de autocorrelação por $R_X[k] = E[X[n]X[n+k]]$, função de autocovariância por $K_X[k] = E[(X[n]-m_X)(X[n+k]-m_X)]$ e densidade espectral de potência por $S_X(f) = \mathcal{F}\{R_X[k]\}$.
+
+% ========================================================
+% ITEM 1
+% ========================================================
+\section{Séries Temporais, Histogramas e Caracterização Gaussiana (Item 1)}
+
+\begin{itembox}{Especificação Oficial do Item 1}
+Plotar: Os sinais e seus Histogramas. Verificar se podem ser caracterizados (PDF) por um vetor Gaussiano.
+\end{itembox}
+
+As Figuras \ref{fig:sinais_tempo} e \ref{fig:histogramas} ilustram a dinâmica temporal dos dois processos e seus respectivos histogramas empíricos normalizados (estimadores da f.d.p.), comparados às densidades Gaussianas teóricas $\mathcal{N}(m, \sigma^2)$ ajustadas com os momentos de primeira e segunda ordem calculados para cada sequência.
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.49\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{Programas/resultados/passo1_sinais_e_histogramas/sinal_startrek_h263_64k.png}
+        \caption{Série temporal $X[n]$ (\texttt{startrek\_h263\_64k}, $N_X=26.192$).}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.49\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{Programas/resultados/passo1_sinais_e_histogramas/sinal_startrek_mpeg4_hq.png}
+        \caption{Série temporal $Y[n]$ (\texttt{startrek\_mpeg4\_hq}, $N_Y=89.998$).}
+    \end{subfigure}
+    \caption{Séries temporais do tamanho em bits por quadro para os sinais de vídeo de \textit{Star Trek}.}
+    \label{fig:sinais_tempo}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.49\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{Programas/resultados/passo1_sinais_e_histogramas/histograma_gaussiana_startrek_h263_64k.png}
+        \caption{Histograma empírico vs.\ Gaussiana (\texttt{startrek\_h263\_64k}).}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.49\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{Programas/resultados/passo1_sinais_e_histogramas/histograma_gaussiana_startrek_mpeg4_hq.png}
+        \caption{Histograma empírico vs.\ Gaussiana (\texttt{startrek\_mpeg4\_hq}).}
+    \end{subfigure}
+    \caption{Comparação entre a f.d.p.\ empírica e a distribuição Gaussiana teórica correspondente.}
+    \label{fig:histogramas}
+\end{figure}
+
+\begin{conclusaobox}{Conclusão Analítica: Os sinais NÃO podem ser caracterizados por uma PDF Gaussiana}
+A hipótese de caracterização Gaussiana é **categoricamente rejeitada** para ambos os sinais, fundamentada em três pilares analíticos e físicos:
+\begin{enumerate}[leftmargin=*, nosep]
+    \item \textbf{Suporte Físico Estritamente Positivo ($X[n] \ge 0$):} A distribuição Gaussiana tem suporte bilateral irrestrito $(-\infty, +\infty)$, conferindo probabilidade estritamente não nula a valores negativos. No caso do MPEG-4 ajustado por $\mathcal{N}(1.644{,}81; 1.206{,}03^2)$, a probabilidade teórica de valores negativos seria $P(Y < 0) = \Phi(-1{,}644{,}81 / 1{,}206{,}03) \approx 8{,}6\%$, o que é uma contradição física para volume de bits gerados por um codificador.
+    \item \textbf{Comportamento Bimodal do H.263 ($X[n]$):} O histograma do H.263 exibe estrutura claramente \textbf{bimodal}, com dois picos de concentração (em torno de $750\text{ bits}$ e $1.450\text{ bits}$), decorrentes da alternância de modos de predição inter-quadro e do controle adaptativo do passo de quantização. A distribuição Gaussiana é estritamente unimodal e simétrica.
+    \item \textbf{Assimetria Acentuada e Cauda Pesada (\textit{Heavy Tail}) do MPEG-4 ($Y[n]$):} O sinal MPEG-4 exibe forte assimetria positiva ($\gamma_1 = 1{,}7867 > 0$) e curtose elevada ($\gamma_2 = 7{,}1856 \gg 3$), comportando-se como leptocúrtico com cauda longa à direita (rajadas esporádicas de até $12.500\text{ bits}$ geradas pelos quadros Intra). Esse tipo de tráfego é amplamente caracterizado na literatura por distribuições Gama, Lognormal, Weibull ou misturas multimodais.
+\end{enumerate}
+\end{conclusaobox}
+
+% ========================================================
+% ITEM 2
+% ========================================================
+\section{Valores Esperados: Média, Variância, Desvio-Padrão e VMQ (Item 2)}
+
+\begin{itembox}{Especificação Oficial do Item 2}
+Valores esperados: média, variância ou desvio-padrão e VMQ entre as duas sequências amostrais (sinais de vídeo codificados).
+\end{itembox}
+
+Sob a hipótese de ergodicidade temporal na média e nos momentos quadráticos, os parâmetros estatísticos fundamentais de primeira e segunda ordem são obtidos pelos estimadores amostrais não tendenciosos:
+\[
+m_X = E[X] = \frac{1}{N}\sum_{n=0}^{N-1} x[n], \qquad \text{VMQ}_X = E[X^2] = \frac{1}{N}\sum_{n=0}^{N-1} x^2[n], \qquad \sigma_X^2 = \text{VMQ}_X - m_X^2, \qquad \sigma_X = \sqrt{\sigma_X^2}
+\]
+
+Como as sequências possuem durações amostrais distintas ($N_X = 26.192$ e $N_Y = 89.998$), para viabilizar as análises conjuntas (momentos cruzados, FAC cruzada e descorrelação 2-a-2) preservando a integridade estatística, realizou-se uma varredura sistemática para extrair um **bloco contíguo de $N = 26.192$ quadros consecutivos** de \texttt{startrek\_mpeg4\_hq} ($k_{\text{ini}} = 8.992$ a $k_{\text{fim}} = 35.184$). Esse bloco preserva a f.d.p.\ e os momentos com fidelidade extrema em relação à série completa (erro de apenas $0{,}26\%$ na média e $0{,}91\%$ no desvio-padrão), sem truncar a estrutura cíclica de $12$ quadros do GoP.
+
+A Tabela \ref{tab:momentos} consolida os momentos marginais e cruzados obtidos para as sequências.
+
+\begin{table}[H]
+\centering
+\caption{Valores esperados de primeira e segunda ordem e momentos conjuntos — Grupo 2 (\textit{Star Trek}).}
+\label{tab:momentos}
+\renewcommand{\arraystretch}{1.22}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lccc}
+\toprule
+\textbf{Momento Estatístico / Grandeza} & \textbf{H.263 ($X[n]$)} & \textbf{MPEG-4 Completo ($Y[n]$)} & \textbf{MPEG-4 Bloco Representativo ($Y_{\text{bloco}}[n]$)} \\
+\midrule
+Número de amostras ($N$) & $26.192$ & $89.998$ & $26.192$ ($k = 8.992 \dots 35.184$) \\
+Média $m = E[\cdot]$ ($\text{bits}$) & $1.099{,}2799$ & $1.644{,}8076$ & $1.640{,}6089$ \;\;($\text{erro} = 0{,}26\%$) \\
+Variância $\sigma^2 = \text{Var}(\cdot)$ ($\text{bits}^2$) & $254.130{,}0822$ & $1.454.519{,}4996$ & $1.481.147{,}7026$ \;\;($\text{erro} = 1{,}83\%$) \\
+Desvio-Padrão $\sigma = \sqrt{\sigma^2}$ ($\text{bits}$) & $504{,}1132$ & $1.206{,}0346$ & $1.217{,}0241$ \;\;($\text{erro} = 0{,}91\%$) \\
+Valor Médio Quadrático $\text{VMQ} = E[(\cdot)^2]$ ($\text{bits}^2$) & $1.462.546{,}3689$ & $4.159.911{,}5631$ & $4.172.745{,}1901$ \;\;($\text{erro} = 0{,}31\%$) \\
+Valor Eficaz $\text{RMS} = \sqrt{\text{VMQ}}$ ($\text{bits}$) & $1.209{,}3578$ & $2.039{,}5861$ & $2.042{,}7298$ \;\;($\text{erro} = 0{,}15\%$) \\
+Assimetria Teórica (\textit{Skewness} $\gamma_1$) & $1{,}0607$ & $1{,}7867$ & $1{,}7890$ \\
+Curtose de Pearson ($\gamma_2 = E[(X-m)^4]/\sigma^4$) & $6{,}8223$ & $7{,}1856$ & $7{,}1640$ \\
+\midrule
+\multicolumn{4}{c}{\textbf{Momentos Cruzados entre $X[n]$ (H.263) e $Y_{\text{bloco}}[n]$ (MPEG-4) ($N = 26.192$)}} \\
+\midrule
+Correlação Cruzada no atraso zero $R_{XY}[0] = E[XY]$ & \multicolumn{3}{c}{$1.800.524{,}7502\text{ bits}^2$} \\
+Covariância Cruzada $K_{XY}[0] = E[(X - m_X)(Y - m_Y)]$ & \multicolumn{3}{c}{$-2.963{,}9094\text{ bits}^2$} \\
+Coeficiente de Correlação Linear $\rho_{XY}[0] = \frac{K_{XY}[0]}{\sigma_X \sigma_Y}$ & \multicolumn{3}{c}{$-0{,}004831 \;\;(\approx -0{,}48\%)$} \\
+VMQ da Diferença entre Sequências $E[(X - Y)^2]$ & \multicolumn{3}{c}{$2.034.243{,}5284\text{ bits}^2$ \;\;($\text{RMS}_{X-Y} = 1.426{,}2691\text{ bits}$)} \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
+
+A relação teórica fundamental da disciplina $\text{VMQ} = E[X^2] = \sigma_X^2 + m_X^2$ é verificada com exatidão analítica:
+\begin{align*}
+\text{H.263: } \quad & 254.130{,}0822 + (1.099{,}2799)^2 = 1.462.546{,}3689\text{ bits}^2 \\
+\text{MPEG-4: } \quad & 1.454.519{,}4996 + (1.644{,}8076)^2 = 4.159.911{,}5631\text{ bits}^2
+\end{align*}
+Em termos de engenharia de compressão, o MPEG-4 HQ apresenta média $49{,}2\%$ superior e variância quase $6\text{ vezes}$ maior que o H.263 64k. O codificador H.263 restringe severamente a variabilidade temporal para manter o fluxo compatível com canais de baixa capacidade ($64\text{ kbps}$), ao passo que o MPEG-4 HQ opera em qualidade constante com ampla excursão dinâmica de bits.
+
+% ========================================================
+% ITEM 3
+% ========================================================
+\section{As Três Funções de Autocorrelação (FACs) e FAC Cruzada (Item 3)}
+
+\begin{itembox}{Especificação Oficial do Item 3}
+Plotar as 3 FACs.
+\end{itembox}
+
+\begin{teoriabox}{Definições Rigorosas da FAC e Normalizações (Apostila 3 da Profa. Rosângela)}
+Para processos com suporte estritamente positivo ($X[n] \ge 0$, média $m_X \neq 0$), a definição teórica da Função de Autocorrelação (FAC) no domínio discreto é:
+\[
+R_X[k] = E[X[n] X[n+k]]
+\]
+Propriedades estruturais fundamentais no atraso zero e assintótico ($k \to \infty$):
+\begin{itemize}[leftmargin=*, nosep]
+    \item Em $k = 0$: $R_X[0] = E[X^2] = \text{VMQ}_X = \sigma_X^2 + m_X^2$ (Potência Total do processo).
+    \item Para $k \to \infty$ (perda de correlação temporal): $R_X[k] \to E[X[n]]E[X[n+k]] = m_X^2$ (Potência da componente DC contínua).
+    \item A excursão da oscilação dinâmica (Potência AC / Variância) é dada exatamente pela diferença: $\Delta R_X = R_X[0] - R_X[\infty] = \sigma_X^2$.
+\end{itemize}
+Seguindo o padrão de apresentação gráfica da disciplina, a FAC normalizada pela potência total é:
+\[
+r_X[k] = \frac{R_X[k]}{R_X[0]} = \frac{R_X[k]}{\text{VMQ}_X} \implies r_X[0] = 1{,}0, \quad \lim_{k\to\infty} r_X[k] = \frac{m_X^2}{\text{VMQ}_X} = \frac{m_X^2}{\sigma_X^2 + m_X^2}
+\]
+Quando se deseja analisar exclusivamente a componente AC (descontando o nível médio), utiliza-se o Coeficiente de Autocovariância normalizado: $\rho_X[k] = K_X[k]/\sigma_X^2$, que decai de $1{,}0$ até $0{,}0$.
+\end{teoriabox}
+
+As Figuras \ref{fig:facs_individuais} e \ref{fig:fac_cruzada} apresentam as FACs calculadas com o nível DC preservado (normalizadas por $R[0] = 1{,}0$) e a FAC cruzada entre $X[n]$ e $Y_{\text{bloco}}[n]$.
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.49\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{Programas/resultados/passo3_facs/fac_startrek_h263_64k_zoom.png}
+        \caption{FAC de $X[n]$ (\texttt{h263\_64k}, Zoom $0 \le k \le 250$).}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.49\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{Programas/resultados/passo3_facs/fac_startrek_mpeg4_hq_zoom.png}
+        \caption{FAC de $Y[n]$ (\texttt{mpeg4\_hq}, Zoom $0 \le k \le 250$).}
+    \end{subfigure}
+    \caption{Funções de Autocorrelação individuais normalizadas pelo VMQ ($r_X[0] = 1{,}0$), preservando os níveis DC e a variância dos sinais.}
+    \label{fig:facs_individuais}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.49\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{Programas/resultados/passo3_facs/fac_cruzada_zoom.png}
+        \caption{FAC Cruzada $\rho_{XY}[k]$ (Zoom $0 \le k \le 250$).}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.49\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{Programas/resultados/passo3_facs/fac_cruzada_completa.png}
+        \caption{FAC Cruzada $\rho_{XY}[k]$ (Varredura completa $0 \le k \le 26.191$).}
+    \end{subfigure}
+    \caption{Função de Correlação Cruzada entre os sinais \texttt{startrek\_h263\_64k} e \texttt{startrek\_mpeg4\_hq}.}
+    \label{fig:fac_cruzada}
+\end{figure}
+
+\begin{conclusaobox}{Análise Comparativa das FACs e da Estrutura Periódica de GoP}
+\begin{enumerate}[leftmargin=*, nosep]
+    \item \textbf{Decaimento e Nível DC no H.263 ($X[n]$):} Como a razão de potência contínua é $m_X^2/\text{VMQ}_X = (1.099{,}28)^2 / 1.462.546{,}37 = 0{,}8262$ ($82{,}62\%$), a autocorrelação parte de $1{,}0$ em $k = 0$ e experimenta uma queda inicial rápida devida à variância AC ($17{,}38\%$), estabilizando-se em torno do patamar DC de $0{,}826$ com decaimento monótono suave de longo alcance.
+    \item \textbf{Presença Obrigatória dos Picos Periódicos no MPEG-4 ($Y[n]$):} A razão DC do MPEG-4 é $m_Y^2/\text{VMQ}_Y = 0{,}6503$ ($65{,}03\%$), com expressiva parcela AC de $34{,}97\%$. Os picos periódicos pronunciados a cada $12$ atrasos ($k = 12, 24, 36, 48, \dots$) \textbf{são uma assinatura determinística essencial e mandatória da codificação MPEG-4}: como o GoP é de tamanho $M = 12$ (\texttt{IBBPBBPBBPBB}), quadros do tipo I (que concentram magnitude até 10 vezes maior que quadros B) alinham-se periodicamente no produto $X[n]X[n+12m]$, gerando cristas periódicas de correlação.
+    \item \textbf{FAC Cruzada Praticamente Nula ($\rho_{XY}[k] \approx 0$):} A FAC cruzada normalizada permanece contida na faixa de $[-0{,}05; +0{,}05]$ ao longo de quase todos os atrasos (com $\rho_{XY}[0] = -0{,}0048$). Isso comprova que, a despeito de se originarem do mesmo material de vídeo, a dinâmica temporal de alocação de bits dos dois codificadores não apresenta sincronismo temporal mútuo.
+\end{enumerate}
+\end{conclusaobox}
+
+% ========================================================
+% ITEM 4
+% ========================================================
+\section{Descorrelação 2-a-2 por Diagonalização Matricial (Item 4)}
+
+\begin{itembox}{Especificação Oficial do Item 4}
+Descorrelatar 2-a-2.
+\end{itembox}
+
+\begin{teoriabox}{Fundamentação Teórica: Descorrelação por Autovetores / KLT (J.J.W. Cap. 6)}
+Considerando o vetor aleatório bidimensional centrado $\underline{\widetilde{Z}}[n] = \begin{bmatrix} X[n] - m_X \\ Y_{\text{bloco}}[n] - m_Y \end{bmatrix}$, sua matriz de covariância é simétrica e real:
+\[
+\mathbf{K_Z} = E[\underline{\widetilde{Z}}\,\underline{\widetilde{Z}}^T] = \begin{bmatrix} \sigma_X^2 & K_{XY}[0] \\ K_{XY}[0] & \sigma_Y^2 \end{bmatrix} = \begin{bmatrix} 254.130{,}0822 & -2.963{,}9094 \\ -2.963{,}9094 & 1.481.147{,}7026 \end{bmatrix}
+\]
+Pelo Teorema Espectral de Matrizes Reais Simétricas, existe uma transformação ortogonal $\mathbf{Q}$ cujas colunas são os autovetores ortonormais de $\mathbf{K_Z}$ ($\mathbf{Q}^T \mathbf{Q} = \mathbf{I}$), de modo que:
+\[
+\mathbf{K_W} = \mathbf{Q}^T \mathbf{K_Z} \mathbf{Q} = \begin{bmatrix} \lambda_1 & 0 \\ 0 & \lambda_2 \end{bmatrix}
+\]
+onde $\lambda_1, \lambda_2$ são os autovalores de $\mathbf{K_Z}$. O novo vetor aleatório $\underline{W}[n] = \mathbf{Q}^T \underline{\widetilde{Z}}[n] = \begin{bmatrix} W_1[n] \\ W_2[n] \end{bmatrix}$ possui componentes estritamente descorrelacionadas entre si no atraso zero: $\text{Cov}(W_1, W_2) = E[W_1 W_2] = 0$.
+\end{teoriabox}
+
+Resolvendo o polinômio característico $\det(\mathbf{K_Z} - \lambda \mathbf{I}) = 0$, obtêm-se:
+\[
+\lambda_1 = 254.122{,}9224\text{ bits}^2 \qquad \text{e} \qquad \lambda_2 = 1.481.154{,}8624\text{ bits}^2
+\]
+A matriz modal ortonormal de projeção $\mathbf{Q}$ associada é:
+\[
+\mathbf{Q} = \begin{bmatrix} -0{,}999997 & -0{,}002416 \\ -0{,}002416 & \phantom{-}0{,}999997 \end{bmatrix}
+\]
+Aplicando a transformação $\underline{W}[n] = \mathbf{Q}^T (\underline{Z}[n] - \underline{m}_Z)$, calcula-se o coeficiente de correlação cruzada resultante no atraso zero:
+\[
+\rho_{W_1 W_2}[0] = \frac{E[W_1 W_2]}{\sqrt{\lambda_1 \lambda_2}} = 9{,}27 \times 10^{-19} \approx \mathbf{0{,}0000}
+\]
+As Figuras \ref{fig:descorrelacao_cruzada} e \ref{fig:facs_descorrelacionadas} comprovam visual e analiticamente a anulação exata da correlação cruzada em $k=0$ e as FACs dos sinais descorrelacionados $W_1[n]$ e $W_2[n]$.
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.49\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{Programas/resultados/passo4_descorrelacao/descorrelacao_cruzada_zoom.png}
+        \caption{FAC cruzada $\rho_{W_1 W_2}[k]$ (Zoom $0 \le k \le 250$).}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.49\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{Programas/resultados/passo4_descorrelacao/descorrelacao_cruzada_completa.png}
+        \caption{Comparação da FAC cruzada antes e após descorrelação.}
+    \end{subfigure}
+    \caption{Processo de descorrelação 2-a-2: a correlação cruzada em $k=0$ é rigorosamente cancelada ($\rho_{W_1 W_2}[0] = 0$).}
+    \label{fig:descorrelacao_cruzada}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.49\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{Programas/resultados/passo4_descorrelacao/fac_descorrelacionado_w1.png}
+        \caption{FAC do sinal descorrelacionado $W_1[n]$.}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.49\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{Programas/resultados/passo4_descorrelacao/fac_descorrelacionado_w2.png}
+        \caption{FAC do sinal descorrelacionado $W_2[n]$.}
+    \end{subfigure}
+    \caption{Funções de Autocorrelação individuais dos sinais transformados e descorrelacionados $W_1[n]$ e $W_2[n]$.}
+    \label{fig:facs_descorrelacionadas}
+\end{figure}
+
+\begin{conclusaobox}{Invariância da Descorrelação frente à Normalização Gráfica}
+A descorrelação matricial opera de forma estrita sobre a **matriz de covariância** $\mathbf{K_Z}$ calculada a partir dos dados centrados dos sinais. Portanto, escalas cosméticas de plotagem da FAC (como normalizar por $\text{VMQ}$ ou por $\sigma^2$) **não exercem qualquer influência sobre os autovetores $\mathbf{Q}$ nem sobre a ortogonalidade dos sinais descorrelacionados**.
+\end{conclusaobox}
+
+% ========================================================
+% ITEM 5
+% ========================================================
+\section{Análise de Estacionariedade no Sentido Amplo e Estrito (Item 5)}
+
+\begin{itembox}{Especificação Oficial do Item 5}
+Os sinais podem ser considerados processos ESA? EE?
+\end{itembox}
+
+\begin{teoriabox}{Definições Formais de Estacionariedade (J.J.W. Cap. 7, págs. 246–247)}
+\begin{itemize}[leftmargin=*, nosep]
+    \item \textbf{Definição 7.8 (Estacionariedade de Ordem $m$):} Um processo estocástico $X(t)$ é dito estacionário de ordem $m$ se a densidade de probabilidade conjunta de suas amostras em quaisquer instantes $t_1, t_2, \dots, t_m$ for invariante a qualquer deslocamento temporal $\tau$:
+    \[
+    f_{X(t_1), X(t_2), \dots, X(t_m)}(x_1, x_2, \dots, x_m) = f_{X(t_1+\tau), X(t_2+\tau), \dots, X(t_m+\tau)}(x_1, x_2, \dots, x_m), \quad \forall \tau
+    \]
+    \item \textbf{Definição 7.9 (Estacionariedade no Sentido Estrito — ESE / EE):} Um processo $X(t)$ é dito Estacionário no Sentido Estrito se for estacionário de ordem $m$ para \textbf{todo} inteiro positivo $m \ge 1$.
+    \item \textbf{Definição 7.10 (Estacionariedade no Sentido Amplo — ESA / WSS):} Um processo $X(t)$ é dito Estacionário no Sentido Amplo se atender simultaneamente a:
+    \begin{enumerate}[label=(\alph*), nosep]
+        \item O valor médio é constante no tempo: $m_X(t) = E[X(t)] = \text{constante}, \;\forall t$.
+        \item A função de autocorrelação depende apenas da diferença temporal $\tau = t_2 - t_1$: $R_X(t_1, t_2) = R_X(\tau)$.
+        \item Potência média finita: $R_X(0) < \infty$.
+    \end{enumerate}
+\end{itemize}
+\end{teoriabox}
+
+Para avaliar empiricamente as condições de ESA, calculou-se a média móvel $\hat{m}(t)$ e a variância móvel $\hat{\sigma}^2(t)$ através de janelas temporais deslizantes de $W = 1.000\text{ quadros}$ ($\approx 40\text{ segundos}$ de vídeo), conforme ilustrado na Figura \ref{fig:estacionariedade}.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.88\textwidth]{Programas/resultados/passo6_7_dep_e_espectro/fig6_estacionariedade.png}
+    \caption{Evolução temporal da média móvel e variância móvel dos sinais de vídeo em janelas deslizantes ($W = 1.000\text{ quadros}$).}
+    \label{fig:estacionariedade}
+\end{figure}
+
+\begin{conclusaobox}{Parecer Conclusivo: Os sinais NÃO são globalmente ESA e NÃO são ESE}
+\begin{enumerate}[leftmargin=*, nosep]
+    \item \textbf{Não são Processos ESA Globalmente:} Como evidente na Figura \ref{fig:estacionariedade}, a média temporal varia drasticamente ao longo do filme ($m_X(t)$ varia entre $600$ e $1.800\text{ bits}$ no H.263, e $m_Y(t)$ transita entre $800$ e $3.200\text{ bits}$ no MPEG-4, oscilações superiores a $60\%$). Em sequências cinematográficas reais, alternam-se cenas de baixo movimento e fundos escuros no espaço sideral com sequências frenéticas de ação. Como $E[X(t)] \neq \text{cte}$, **a condição (a) de ESA é violada de maneira categórica**.
+    \item \textbf{Não são Processos ESE / EE:} Na teoria clássica de processos estocásticos (J.J.W. Cap. 7), se um processo possui segundo momento finito ($E[X^2] < \infty$), ser ESE é uma condição estritamente mais forte que ser ESA ($\text{ESE} \implies \text{ESA}$). Tendo sido violada a condição de ESA na média, **o processo não pode, sob nenhuma hipótese matemática, ser considerado ESE**.
+    \item \textbf{Aproximação Local (Ciclostacionariedade e Estacionariedade por Partes):} Dentro de tomadas de cena contínuas (\textit{shots}), o sinal pode ser modelado localmente como **estacionário por partes** (\textit{piecewise stationary}). Em adição, devido à estrutura rígida de repetição periódica do GoP ($M = 12$ quadros), o sinal MPEG-4 exibe características de **processo ciclostacionário de 2ª ordem** com período $T_0 = 12\text{ quadros}$ ($m(t + 12) = m(t)$ e $R(t+12, \tau) = R(t, \tau)$).
+\end{enumerate}
+\end{conclusaobox}
+
+% ========================================================
+% ITEM 6
+% ========================================================
+\section{Densidade Espectral de Potência (DEP) (Item 6)}
+
+\begin{itembox}{Especificação Oficial do Item 6}
+Plotar as DEPs.
+\end{itembox}
+
+\begin{teoriabox}{O Teorema de Wiener-Khinchin (J.J.W. Cap. 7, pág. 256)}
+Para um processo discreto no tempo com autocorrelação $R_X[k]$, a Densidade Espectral de Potência (DEP) $S_X(f)$ é rigorosamente a Transformada de Fourier da sequência de autocorrelação:
+\[
+S_X(f) = \mathcal{F}\big\{ R_X[k] \big\} = \sum_{k=-\infty}^{\infty} R_X[k] e^{-j 2\pi f k}, \qquad f \in [-0{,}5; +0{,}5] \text{ ciclos/amostra}
+\]
+A potência total média do processo é a integral da DEP no intervalo fundamental:
+\[
+P_{\text{total}} = \text{VMQ}_X = R_X[0] = \int_{-0{,}5}^{0{,}5} S_X(f)\,df
+\]
+Como o processo possui média não nula ($m_X \neq 0$), a componente contínua manifesta-se no espectro como um impulso de Dirac na frequência zero: $m_X^2 \delta(f)$.
+\end{teoriabox}
+
+As DEPs foram estimadas computacionalmente através do método do periodograma médio de Welch com janelamento de Hanning (tamanho de segmento de $2.048$ amostras e $50\%$ de sobreposição), permitindo mitigar a variância do estimador e revelar as características espectrais finas em escala logarítmica ($\text{dB} = 10\log_{10} S(f)$). A Figura \ref{fig:deps} exibe as DEPs obtidas para ambos os sinais.
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.49\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{Programas/resultados/passo6_7_dep_e_espectro/dep_startrek_h263_64k.png}
+        \caption{DEP de $X[n]$ (\texttt{startrek\_h263\_64k}).}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.49\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{Programas/resultados/passo6_7_dep_e_espectro/dep_startrek_mpeg4_hq.png}
+        \caption{DEP de $Y[n]$ (\texttt{startrek\_mpeg4\_hq}).}
+    \end{subfigure}
+    \caption{Densidade Espectral de Potência (DEP) estimada pelo método de Welch (Item 6).}
+    \label{fig:deps}
+\end{figure}
+
+\begin{conclusaobox}{Análise Espectral da DEP}
+\begin{itemize}[leftmargin=*, nosep]
+    \item \textbf{Concentração de Potência em Baixa Frequência:} Ambos os espectros concentram a maior parte de sua potência próximo a $f = 0$ (atingindo $+80\text{ dB}$ a $+90\text{ dB}$ no nível contínuo e caindo para menos de $+50\text{ dB}$ em frequências médias), o que comprova o perfil fortemente passa-baixas inerente ao tráfego de vídeo.
+    \item \textbf{Raias Harmônicas de GoP na DEP do MPEG-4:} A DEP do MPEG-4 exibe picos espectrais pontiagudos perfeitamente espaçados nos múltiplos da frequência fundamental do GoP:
+    \[
+    f_m = \frac{m}{12}\text{ ciclos/amostra} \implies 
+    \left\{
+    \begin{aligned}
+    f_1 &\approx 0{,}0833, \quad f_2 \approx 0{,}1667, \quad f_3 = 0{,}2500, \\
+    f_4 &\approx 0{,}3333, \quad f_5 \approx 0{,}4167
+    \end{aligned}
+    \right.
+    \]
+    Pelo Teorema de Wiener-Khinchin, essas raias espectrais correspondem de maneira unívoca às oscilações de período $12$ observadas na autocorrelação $R_Y[k]$.
+\end{itemize}
+\end{conclusaobox}
+
+% ========================================================
+% ITEM 7
+% ========================================================
+\section[Classificação por Cores do Espectro (Item 7)]{Classificação por Cores do Espectro ($S(f) \propto 1/f^\alpha$) (Item 7)}
+
+\begin{itembox}{Especificação Oficial do Item 7}
+Qual a cor do espectro de cada um dos sinais de vídeo.
+\end{itembox}
+
+\begin{teoriabox}{Classificação Teórica de Cores de Ruído (Processos $1/f^\alpha$)}
+A coloração do espectro de potência é classificada a partir do expoente de decaimento $\alpha$ na lei de potências nas frequências baixas ($f \to 0$):
+\[
+S(f) \propto \frac{1}{f^\alpha} \implies 10\log_{10} S(f) = -10\alpha \log_{10} f + C
+\]
+Na teoria de ruídos coloridos, os principais regimes espectrais são:
+\begin{itemize}[leftmargin=*, nosep]
+    \item \textbf{Ruído Branco ($\alpha = 0$):} Espectro rigorosamente plano ($0\text{ dB/década}$); amostras temporalmente descorrelacionadas.
+    \item \textbf{Ruído Rosa ($\alpha = 1$):} Decaimento de $-10\text{ dB/década}$ ($1/f$); associado a processos com dependência de longo alcance (LRD).
+    \item \textbf{Ruído Marrom / Vermelho ($\alpha = 2$):} Decaimento de $-20\text{ dB/década}$ ($1/f^2$); processo integral de ruído branco (movimento Browniano).
+\end{itemize}
+\end{teoriabox}
+
+Realizou-se a regressão linear log-log na faixa de frequências baixas ($f \in [0{,}005; 0{,}15]$) para extrair quantitativamente o valor do expoente $\alpha$ de cada sinal, conforme exposto na Figura \ref{fig:cor_espectro}.
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.49\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{Programas/resultados/passo6_7_dep_e_espectro/cor_espectro_startrek_h263_64k.png}
+        \caption{Ajuste espectral log-log: H.263 64k ($\alpha = 0{,}63$).}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.49\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{Programas/resultados/passo6_7_dep_e_espectro/cor_espectro_startrek_mpeg4_hq.png}
+        \caption{Ajuste espectral log-log: MPEG-4 HQ ($\alpha = 1{,}23$).}
+    \end{subfigure}
+    \caption{Classificação da cor do espectro por regressão linear em escala log-log no regime de baixas frequências (Item 7).}
+    \label{fig:cor_espectro}
+\end{figure}
+
+\begin{conclusaobox}{Classificação Espectral Conclusiva dos Sinais}
+\begin{itemize}[leftmargin=*, nosep]
+    \item \textbf{Sinal H.263 (\texttt{startrek\_h263\_64k}):} O expoente estimado é $\alpha \approx \mathbf{0{,}63}$ (decaimento de $-6{,}3\text{ dB/década}$). Trata-se de um espectro do tipo **Passa-Baixas / Quase-Branco com inclinação intermediária em direção ao Ruído Rosa**. O controle estrito de taxa do canal de $64\text{ kbps}$ introduz perturbações de alta frequência que atenuam a persistência espectral puramente rosa.
+    \item \textbf{Sinal MPEG-4 (\texttt{startrek\_mpeg4\_hq}):} O expoente obtido é $\alpha \approx \mathbf{1{,}23}$ (decaimento de $-12{,}3\text{ dB/década}$). Classifica-se como **Ruído Colorido intermediário entre Rosa ($\alpha=1$) e Marrom/Vermelho ($\alpha=2$)**. Esse resultado confirma a forte persistência de autocorrelação e a autocorrelação de longo alcance (LRD) típica de fluxos de vídeo codificados em regime VBR de alta qualidade.
+\end{itemize}
+\end{conclusaobox}
+
+% ========================================================
+% CONCLUSÃO GERAL
+% ========================================================
+\section*{Conclusão Geral e Síntese dos Resultados}
+
+A análise estocástica comparativa entre os fluxos de vídeo de \textit{Star Trek} permitiu consolidar os conceitos de modelagem probabilística de processos discretos:
+\begin{enumerate}[leftmargin=*, nosep]
+    \item Ambos os sinais rejeitam a hipótese Gaussiana devido ao suporte físico unilateral ($X \ge 0$), à bimodalidade do H.263 e à cauda pesada assimétrica do MPEG-4.
+    \item O bloco contíguo de $26.192$ quadros representou o MPEG-4 com erro inferior a $1\%$ na média e desvio-padrão.
+    \item A autocorrelação do MPEG-4 preserva de forma obrigatória as oscilações periódicas de período $12$ do GoP (\texttt{IBBPBBPBBPBB}), e a normalização pelo VMQ garante consistência física com o patamar DC ($m^2/\text{VMQ}$).
+    \item A descorrelação via decomposição espectral da matriz de covariância anulou estritamente a correlação cruzada em $k=0$ ($\rho_{W_1 W_2}[0] = 9{,}27 \times 10^{-19}$), comprovando que a transformação opera independentemente da escala de plotagem da FAC.
+    \item Os sinais violam a condição de média constante e, portanto, não são ESA nem ESE em termos globais, embora possam ser modelados localmente como ciclostacionários ou estacionários por partes.
+    \item As DEPs obtidas pelo Teorema de Wiener-Khinchin revelaram o comportamento colorido $1/f^\alpha$, situando o H.263 na região Quase-Branca/Rosa ($\alpha = 0{,}63$) e o MPEG-4 na transição entre Rosa e Marrom ($\alpha = 1{,}23$).
+\end{enumerate}
+
+% ========================================================
+% REFERÊNCIAS BIBLIOGRÁFICAS
+% ========================================================
+\begin{thebibliography}{99}
+\bibitem{JJW} ALBUQUERQUE, J. P. A.; FORTES, J. M. P.; FINAMORE, W. A. \textit{Probabilidade, Variáveis Aleatórias e Processos Estocásticos}. Rio de Janeiro: Editora PUC-Rio / LTC, Capítulos 6 e 7.
+\bibitem{Papoulis} PAPOULIS, A.; PILLAI, S. U. \textit{Probability, Random Variables and Stochastic Processes}. 4th ed. New York: McGraw-Hill, 2002.
+\bibitem{Rosangela} COELHO, R. F. \textit{Apostila 3: Processos Estocásticos e Análise Espectral}. Seção de Engenharia Elétrica, Instituto Militar de Engenharia (IME), 2026.
+\bibitem{Rose} ROSE, O. \textit{Statistical Properties of MPEG Video Traffic and their Impact on Traffic Modeling in ATM Systems}. University of Würzburg, Research Report No.\ 101, 1995.
+\end{thebibliography}
+
+\end{document}
