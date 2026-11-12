@@ -6,24 +6,21 @@
 \usepackage{amsmath, amsfonts, amssymb}
 \usepackage{geometry}
 \usepackage{graphicx}
-\usepackage{subcaption}
 \usepackage{float}
 \usepackage{enumitem}
 \usepackage{booktabs}
-\usepackage{array}
 \usepackage{indentfirst}
 \usepackage{microtype}
 \usepackage{setspace}
 \usepackage[font=small,labelfont=bf,labelsep=period]{caption}
 \usepackage{hyperref}
 
-\geometry{left=2.2cm, right=2.2cm, top=2.2cm, bottom=2.2cm}
+\geometry{left=2.4cm, right=2.4cm, top=2.3cm, bottom=2.3cm}
 \sloppy
-\setstretch{1.14}
+\setstretch{1.15}
+\setlength{\parskip}{3pt}
+\setlength{\parindent}{1.25cm}
 \setlength{\textfloatsep}{10pt plus 2pt minus 2pt}
-\setlength{\floatsep}{8pt plus 2pt minus 2pt}
-\setlength{\abovedisplayskip}{6pt plus 2pt minus 2pt}
-\setlength{\belowdisplayskip}{6pt plus 2pt minus 2pt}
 
 \hypersetup{
     colorlinks=false,
@@ -32,14 +29,17 @@
     pdfauthor={Bruno Mariano, Jaco Medeiros Lima, Joao Victor Pariz, Lucas Quiuqui, Marcos Vinicius, Renato Felix}
 }
 
-\setlength{\parskip}{3pt}
-\setlength{\parindent}{1.25cm}
+% \fig{largura}{arquivo}{legenda}{rotulo}
+\newcommand{\fig}[4]{%
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=#1\linewidth]{Programas/resultados/#2}
+    \caption{#3}
+    \label{#4}
+\end{figure}}
 
 \begin{document}
 
-% ========================================================
-% CABEÇALHO DO RELATÓRIO
-% ========================================================
 \begin{center}
     {\large \textbf{INSTITUTO MILITAR DE ENGENHARIA}}\\[1mm]
     {\normalsize \textbf{SEÇÃO DE ENGENHARIA ELÉTRICA E DE SISTEMAS (SE/3)}}\\[1mm]
@@ -56,399 +56,146 @@
     \rule{\textwidth}{0.8pt}
 \end{center}
 
-\vspace{1mm}
-
-% ========================================================
-% INTRODUÇÃO
-% ========================================================
 \section*{Introdução}
 
-Este relatório apresenta o Trabalho 3 de Modelos Probabilísticos: a análise estocástica de dois sinais de vídeo codificados do filme \textit{Star Trek} (Grupo 2). Os sinais são o número de bits por quadro de cada codificação:
+Este trabalho faz a análise estocástica de dois sinais de vídeo codificados do filme \textit{Star Trek}. Os sinais são o número de bits por quadro:
 \begin{itemize}[leftmargin=*, nosep]
-    \item \texttt{startrek\_h263\_64k.txt} ($X[n]$): codificado em H.263 a $64\text{ kbps}$, com $N_X = 26.192$ amostras;
-    \item \texttt{startrek\_mpeg4\_hq.txt} ($Y[n]$): codificado em MPEG-4 de alta qualidade, com $N_Y = 89.998$ amostras.
+    \item $X[n]$: \texttt{startrek\_h263\_64k}, codificado em H.263, com $N_X = 26.192$ amostras;
+    \item $Y[n]$: \texttt{startrek\_mpeg4\_hq}, codificado em MPEG-4, com $N_Y = 89.998$ amostras.
 \end{itemize}
-
-A teoria usada vem das aulas da professora Rosângela e dos Capítulos 6 e 7 do livro de Albuquerque, Fortes e Finamore (J.J.W.) \cite{JJW}.
+A teoria usada vem das aulas da professora Rosângela e dos Capítulos 6 e 7 do livro J.J.W. \cite{JJW}.
 
 % ========================================================
-% ITEM 1
-% ========================================================
-\section{Sinais Temporais, Histogramas e Caracterização Gaussiana}
+\section{Sinais e Histogramas}
 
-\noindent\textbf{Enunciado (Item 1):} \textit{Plotar os sinais e seus Histogramas. Verificar se podem ser caracterizados (PDF) por um vetor Gaussiano.}
+\noindent\textbf{Item 1:} \textit{Plotar os sinais e seus histogramas. Verificar se podem ser caracterizados (PDF) por um vetor Gaussiano.}
 
 \medskip
-Pela Definição 7.23 do J.J.W. \cite{JJW}, um processo discreto é caracterizado por um vetor Gaussiano se todo vetor $\underline{X} = [X[n_1], \dots, X[n_k]]^T$ for conjuntamente Gaussiano. Para isso, cada marginal precisa ser Gaussiana:
-\begin{equation}
-P_X(x) = \frac{1}{\sqrt{2\pi\sigma_X^2}} \exp\!\left(-\frac{(x - m_X)^2}{2\sigma_X^2}\right), \qquad -\infty < x < \infty
-\end{equation}
+Um vetor Gaussiano exige que cada marginal seja Gaussiana, com f.d.p.\ $P_X(x) = \frac{1}{\sqrt{2\pi\sigma_X^2}} e^{-(x-m_X)^2/(2\sigma_X^2)}$ (Def.\ 7.23 do J.J.W.). As Figuras \ref{fig:sinal_x}--\ref{fig:hist_y} mostram os sinais e os histogramas junto da Gaussiana de mesma média e variância.
 
-A Figura \ref{fig:sinais_tempo} mostra os sinais no tempo e a Figura \ref{fig:histogramas} mostra os histogramas junto da Gaussiana de mesma média e desvio-padrão.
+\fig{0.85}{passo1_sinais_e_histogramas/sinal_startrek_h263_64k.png}{Sinal $X[n]$ (H.263).}{fig:sinal_x}
+\fig{0.85}{passo1_sinais_e_histogramas/sinal_startrek_mpeg4_hq.png}{Sinal $Y[n]$ (MPEG-4).}{fig:sinal_y}
+\fig{0.85}{passo1_sinais_e_histogramas/histograma_gaussiana_startrek_h263_64k.png}{Histograma de $X[n]$ e Gaussiana.}{fig:hist_x}
+\fig{0.85}{passo1_sinais_e_histogramas/histograma_gaussiana_startrek_mpeg4_hq.png}{Histograma de $Y[n]$ e Gaussiana.}{fig:hist_y}
 
-\begin{figure}[!htbp]
-    \centering
-    \begin{subfigure}[b]{0.48\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{Programas/resultados/passo1_sinais_e_histogramas/sinal_startrek_h263_64k.png}
-        \caption{Sinal $X[n]$ (\texttt{h263\_64k}, $N_X=26.192$).}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}[b]{0.48\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{Programas/resultados/passo1_sinais_e_histogramas/sinal_startrek_mpeg4_hq.png}
-        \caption{Sinal $Y[n]$ (\texttt{mpeg4\_hq}, $N_Y=89.998$).}
-    \end{subfigure}
-    \caption{Número de bits por quadro de cada sinal.}
-    \label{fig:sinais_tempo}
-\end{figure}
-
-\begin{figure}[!htbp]
-    \centering
-    \begin{subfigure}[b]{0.48\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{Programas/resultados/passo1_sinais_e_histogramas/histograma_gaussiana_startrek_h263_64k.png}
-        \caption{Histograma e Gaussiana teórica ($X[n]$).}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}[b]{0.48\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{Programas/resultados/passo1_sinais_e_histogramas/histograma_gaussiana_startrek_mpeg4_hq.png}
-        \caption{Histograma e Gaussiana teórica ($Y[n]$).}
-    \end{subfigure}
-    \caption{Histogramas e f.d.p.\ Gaussiana de mesma média e variância.}
-    \label{fig:histogramas}
-\end{figure}
-
-Os sinais \textbf{não podem ser caracterizados por um vetor Gaussiano}, pelos motivos abaixo:
-\begin{enumerate}[leftmargin=*, nosep]
-    \item \textbf{Valores não negativos ($X[n] \ge 0$):} o número de bits nunca é negativo, mas a Gaussiana dá probabilidade a valores negativos. Pela função $Q(\alpha)$, $P(Y < 0) = Q(m_Y/\sigma_Y) = Q(1{,}3638) \approx 8{,}63\%$ no MPEG-4 e $P(X < 0) = Q(m_X/\sigma_X) = Q(2{,}1806) \approx 1{,}46\%$ no H.263.
-    \item \textbf{H.263 com dois picos:} o histograma (Figura \ref{fig:histogramas}a) tem dois máximos, em torno de $750$ e $1.450\text{ bits}$, enquanto a Gaussiana tem um só.
-    \item \textbf{MPEG-4 assimétrico:} o histograma (Figura \ref{fig:histogramas}b) concentra-se em valores baixos e tem cauda longa à direita, até $12.500\text{ bits}$.
-\end{enumerate}
-Como as marginais não são Gaussianas, o vetor não é Gaussiano.
+Os sinais \textbf{não podem ser caracterizados por um vetor Gaussiano}: o número de bits nunca é negativo, mas a Gaussiana dá probabilidade a valores negativos ($P(Y<0) = Q(m_Y/\sigma_Y) \approx 8{,}63\%$ e $P(X<0) \approx 1{,}46\%$); o histograma do H.263 tem dois picos (em torno de $750$ e $1.450$ bits); e o do MPEG-4 é assimétrico, com cauda longa à direita.
 
 % ========================================================
-% ITEM 2
-% ========================================================
-\section{Valores Esperados: Média, Variância, Desvio-Padrão e VMQ}
+\section{Valores Esperados}
 
-\noindent\textbf{Enunciado (Item 2):} \textit{Valores esperados: média, variância ou desvio-padrão e VMQ entre as duas sequências amostrais (sinais de vídeo codificados).}
+\noindent\textbf{Item 2:} \textit{Valores esperados: média, variância ou desvio-padrão e VMQ entre as duas sequências amostrais.}
 
 \medskip
-Os momentos foram estimados pelas médias amostrais:
-\begin{align}
-m_X &= \frac{1}{N}\sum_{n=0}^{N-1} x[n], & \text{VMQ}_X &= \frac{1}{N}\sum_{n=0}^{N-1} x^2[n], \\
-\sigma_X^2 &= \text{VMQ}_X - m_X^2, & \sigma_X &= \sqrt{\sigma_X^2}
-\end{align}
+Os sinais têm tamanhos diferentes. Para calcular os momentos conjuntos, cortou-se do MPEG-4 um bloco contínuo de $26.192$ amostras ($k = 8.992$ a $35.184$), escolhido para manter a média e o desvio-padrão da série completa (erro menor que $1\%$). Esse bloco, $Y_{\text{bloco}}[n]$, é usado nos Itens 3 e 4. A Figura \ref{fig:corte} compara as f.d.p.s do sinal original e do bloco.
 
-O H.263 tem $26.192$ amostras e o MPEG-4 tem $89.998$. Para calcular os momentos conjuntos e a correlação cruzada, os dois sinais precisam ter o mesmo tamanho. Por isso cortou-se do MPEG-4 um bloco contínuo de $26.192$ amostras (índices $k = 8.992$ a $35.184$), escolhido para manter a média e o desvio-padrão da série completa (erro menor que $1\%$). A Figura \ref{fig:corte_mpeg4} compara a f.d.p.\ do sinal original com a do bloco. Os resultados estão nas Tabelas \ref{tab:momentos} e \ref{tab:conjuntos}.
+\fig{0.7}{passo3_facs/comparacao_pdf_mpeg4_cortada.png}{F.d.p.\ do MPEG-4 original e do bloco cortado.}{fig:corte}
 
-\begin{figure}[!htbp]
-    \centering
-    \includegraphics[width=0.58\linewidth]{Programas/resultados/passo3_facs/comparacao_pdf_mpeg4_cortada.png}
-    \caption{F.d.p.\ do MPEG-4 original ($89.998$ amostras) e do bloco cortado ($26.192$ amostras, $k = 8.992$ a $35.184$).}
-    \label{fig:corte_mpeg4}
-\end{figure}
-
-\begin{table}[!htbp]
+\begin{table}[htbp]
 \centering
-\caption{Valores esperados dos sinais analisados (\textit{Star Trek}).}
+\caption{Valores esperados dos sinais.}
 \label{tab:momentos}
 \renewcommand{\arraystretch}{1.2}
 \small
 \begin{tabular}{lrrr}
 \toprule
-Grandeza & \multicolumn{1}{c}{$X[n]$ (H.263)} & \multicolumn{1}{c}{$Y[n]$ (MPEG-4 completo)} & \multicolumn{1}{c}{$Y_{\text{bloco}}[n]$ (MPEG-4 bloco)} \\
+ & $X[n]$ & $Y[n]$ & $Y_{\text{bloco}}[n]$ \\
 \midrule
-Número de amostras ($N$) & $26.192$ & $89.998$ & $26.192$ \\
 Média $m$ (bits) & $1.099{,}28$ & $1.644{,}81$ & $1.640{,}61$ \\
 Variância $\sigma^2$ (bits$^2$) & $254.130{,}08$ & $1.454.519{,}50$ & $1.481.147{,}70$ \\
 Desvio-padrão $\sigma$ (bits) & $504{,}11$ & $1.206{,}03$ & $1.217{,}02$ \\
-VMQ $=E[(\cdot)^2]$ (bits$^2$) & $1.462.546{,}37$ & $4.159.911{,}56$ & $4.172.745{,}19$ \\
-Valor eficaz $\sqrt{\text{VMQ}}$ (bits) & $1.209{,}36$ & $2.039{,}59$ & $2.042{,}73$ \\
+VMQ (bits$^2$) & $1.462.546{,}37$ & $4.159.911{,}56$ & $4.172.745{,}19$ \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\begin{table}[!htbp]
-\centering
-\caption{Momentos conjuntos entre $X[n]$ e $Y_{\text{bloco}}[n]$ ($N = 26.192$).}
-\label{tab:conjuntos}
-\renewcommand{\arraystretch}{1.2}
-\small
-\begin{tabular}{lr}
-\toprule
-Grandeza & Valor \\
-\midrule
-Correlação cruzada $R_{XY}[0] = E[XY]$ & $1.800.524{,}75\ \text{bits}^2$ \\
-Covariância cruzada $K_{XY}[0] = R_{XY}[0] - m_X m_Y$ & $-2.963{,}91\ \text{bits}^2$ \\
-Coeficiente de correlação $\rho_{XY}[0] = K_{XY}[0]/(\sigma_X \sigma_Y)$ & $-0{,}0048$ \\
-VMQ da diferença $E[(X - Y)^2]$ & $2.034.243{,}53\ \text{bits}^2$ \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-Confere a relação $\text{VMQ} = \sigma^2 + m^2$:
-\begin{align*}
-\text{H.263: } \quad & 254.130{,}08 + (1.099{,}28)^2 = 1.462.546{,}37\text{ bits}^2 = \text{VMQ}_X \\
-\text{MPEG-4: } \quad & 1.454.519{,}50 + (1.644{,}81)^2 = 4.159.911{,}56\text{ bits}^2 = \text{VMQ}_Y
-\end{align*}
-O MPEG-4 tem média $50\%$ maior e variância cerca de $5{,}7$ vezes a do H.263. O H.263 trabalha com taxa limitada a $64\text{ kbps}$, então o tamanho dos quadros varia menos.
+Entre $X[n]$ e $Y_{\text{bloco}}[n]$: $R_{XY}[0] = E[XY] = 1.800.524{,}75$, $K_{XY}[0] = -2.963{,}91$, $\rho_{XY}[0] = -0{,}0048$ e VMQ da diferença $E[(X-Y)^2] = 2.034.243{,}53$ bits$^2$.
 
 % ========================================================
-% ITEM 3
-% ========================================================
-\section{Funções de Autocorrelação (FACs)}
+\section{Funções de Autocorrelação}
 
-\noindent\textbf{Enunciado (Item 3):} \textit{Plotar as 3 FACs.}
+\noindent\textbf{Item 3:} \textit{Plotar as 3 FACs.}
 
 \medskip
-A FAC é $R_X[k] = E[X[n]X[n+k]]$ e a correlação cruzada é $R_{XY}[k] = E[X[n]Y[n+k]]$. Como a média não é nula:
-\begin{itemize}[leftmargin=*, nosep]
-    \item Na origem ($k = 0$): $R_X[0] = E[X^2] = \text{VMQ}_X = \sigma_X^2 + m_X^2$;
-    \item Para $k$ grande: $R_X[k] \to m_X^2$ (nível DC).
-\end{itemize}
-Normalizando por $R_X[0] = \text{VMQ}_X$:
-\begin{equation}
-r_X[k] = \frac{R_X[k]}{R_X[0]} \implies r_X[0] = 1{,}0 \quad \text{e} \quad \lim_{k\to\infty} r_X[k] = \frac{m_X^2}{\text{VMQ}_X}
-\end{equation}
+Usamos $R_X[k] = E[X[n]X[n+k]]$ e $R_{XY}[k] = E[X[n]Y[n+k]]$, normalizadas por $R_X[0] = \text{VMQ}_X$. Assim, $r[0] = 1$ e, para $k$ grande, $r[k] \to m^2/\text{VMQ}$ (nível DC): $0{,}8262$ para o H.263 e $0{,}6503$ para o MPEG-4.
 
-As FACs estão na Figura \ref{fig:facs_individuais} e a correlação cruzada na Figura \ref{fig:fac_cruzada}.
+\fig{0.85}{passo3_facs/fac_startrek_h263_64k_zoom.png}{FAC de $X[n]$ (H.263).}{fig:fac_x}
+\fig{0.85}{passo3_facs/fac_startrek_mpeg4_hq_zoom.png}{FAC de $Y[n]$ (MPEG-4). A linha escura passa pelo meio de cada oscilação.}{fig:fac_y}
+\fig{0.85}{passo3_facs/fac_cruzada_zoom.png}{Correlação cruzada entre $X[n]$ e $Y_{\text{bloco}}[n]$ (detalhe).}{fig:xy_zoom}
+\fig{0.85}{passo3_facs/fac_cruzada_completa.png}{Correlação cruzada entre $X[n]$ e $Y_{\text{bloco}}[n]$ (completa).}{fig:xy_comp}
 
-\begin{figure}[!htbp]
-    \centering
-    \begin{subfigure}[b]{0.48\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{Programas/resultados/passo3_facs/fac_startrek_h263_64k_zoom.png}
-        \caption{FAC de $X[n]$ (\texttt{h263\_64k}, $0 \le k \le 800$).}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}[b]{0.48\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{Programas/resultados/passo3_facs/fac_startrek_mpeg4_hq_zoom.png}
-        \caption{FAC de $Y[n]$ (\texttt{mpeg4\_hq}, $0 \le k \le 800$).}
-    \end{subfigure}
-    \caption{FACs normalizadas pelo VMQ ($r[0] = 1{,}0$).}
-    \label{fig:facs_individuais}
-\end{figure}
+A FAC do H.263 decai de $1$ até o nível DC. A do MPEG-4 oscila com período de $12$ quadros, com um pico a cada $12$ atrasos; por isso traçamos a linha pelo ponto médio de cada ciclo, e não pelos picos. A correlação cruzada fica em torno de zero, ou seja, os sinais são praticamente descorrelatados.
 
-\begin{figure}[!htbp]
-    \centering
-    \begin{subfigure}[b]{0.48\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{Programas/resultados/passo3_facs/fac_cruzada_zoom.png}
-        \caption{FAC cruzada $\rho_{XY}[k]$ (detalhe $0 \le k \le 250$).}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}[b]{0.48\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{Programas/resultados/passo3_facs/fac_cruzada_completa.png}
-        \caption{FAC cruzada $\rho_{XY}[k]$ ($0 \le k \le 26.191$).}
-    \end{subfigure}
-    \caption{Correlação cruzada entre $X[n]$ e $Y_{\text{bloco}}[n]$.}
-    \label{fig:fac_cruzada}
-\end{figure}
-
-Nos gráficos:
-\begin{enumerate}[leftmargin=*, nosep]
-    \item \textbf{H.263:} a curva parte de $1{,}0$ em $k = 0$ e decai até o nível DC $m_X^2/\text{VMQ}_X = 0{,}8262$ (Figura \ref{fig:facs_individuais}a).
-    \item \textbf{MPEG-4:} a curva oscila com período de $12$ quadros (Figura \ref{fig:facs_individuais}b): há um pico a cada $12$ atrasos, ou seja, o tamanho dos quadros se repete a cada $12$ quadros. A linha escura é o ponto médio de cada ciclo de $12$ atrasos, ou seja, passa pelo meio da oscilação e não pelos picos.
-    \item \textbf{Correlação cruzada:} fica em torno de zero para todos os atrasos ($\rho_{XY}[0] = -0{,}0048$), ou seja, os dois sinais são praticamente descorrelatados.
-\end{enumerate}
-
-% ========================================================
-% ITEM 4
 % ========================================================
 \section{Descorrelação 2-a-2}
 
-\noindent\textbf{Enunciado (Item 4):} \textit{Descorrelatar 2-a-2.}
+\noindent\textbf{Item 4:} \textit{Descorrelatar 2-a-2.}
 
 \medskip
-$W_1$ e $W_2$ são descorrelatadas quando a covariância cruzada é nula: $K_{W_1 W_2} = E[W_1 W_2] - m_{W_1}m_{W_2} = 0 \iff \rho_{W_1 W_2} = 0$.
-
-Pelo Capítulo 6 do J.J.W. \cite{JJW}, para o vetor centrado $\underline{\widetilde{Z}}[n] = [X[n] - m_X, \; Y_{\text{bloco}}[n] - m_Y]^T$, a matriz de covariância é:
+Pelo Capítulo 6 do J.J.W., para o vetor centrado $\underline{\widetilde{Z}}[n] = [X[n]-m_X,\; Y_{\text{bloco}}[n]-m_Y]^T$:
 \begin{equation}
-\mathbf{K}_{\underline{Z}} = \begin{bmatrix} \sigma_X^2 & K_{XY}[0] \\ K_{XY}[0] & \sigma_Y^2 \end{bmatrix} = \begin{bmatrix} 254.130{,}08 & -2.963{,}91 \\ -2.963{,}91 & 1.481.147{,}70 \end{bmatrix}
+\mathbf{K}_{\underline{Z}} = \begin{bmatrix} 254.130{,}08 & -2.963{,}91 \\ -2.963{,}91 & 1.481.147{,}70 \end{bmatrix}
 \end{equation}
-Define-se $\underline{W}[n] = \mathbf{Q}^T \underline{\widetilde{Z}}[n]$, onde as colunas de $\mathbf{Q}$ são os autovetores de $\mathbf{K}_{\underline{Z}}$. Os autovalores são as variâncias de $W_1$ e $W_2$:
-\begin{align}
-\lambda_1 &= \sigma_{W_1}^2 = 254.122{,}92\text{ bits}^2, & \lambda_2 &= \sigma_{W_2}^2 = 1.481.154{,}86\text{ bits}^2
-\end{align}
-e a matriz $\mathbf{Q}$ ($\mathbf{Q}^T \mathbf{Q} = \mathbf{I}$) é:
+Os autovalores são $\lambda_1 = 254.122{,}92$ e $\lambda_2 = 1.481.154{,}86$, e a matriz de autovetores é
 \begin{equation}
-\mathbf{Q} = \begin{bmatrix} -0{,}999997 & -0{,}002416 \\ -0{,}002416 & \phantom{-}0{,}999997 \end{bmatrix}
+\mathbf{Q} = \begin{bmatrix} -0{,}999997 & -0{,}002416 \\ -0{,}002416 & \phantom{-}0{,}999997 \end{bmatrix}.
 \end{equation}
-A covariância de $\underline{W}[n]$ fica diagonal:
-\begin{equation}
-\mathbf{K}_{\underline{W}} = \mathbf{Q}^T \mathbf{K}_{\underline{Z}} \mathbf{Q} = \begin{bmatrix} \lambda_1 & 0 \\ 0 & \lambda_2 \end{bmatrix} \implies \rho_{W_1 W_2}[0] = \frac{K_{W_1 W_2}[0]}{\sqrt{\lambda_1 \lambda_2}} = 9{,}27 \times 10^{-19} \approx 0
-\end{equation}
-Logo $W_1$ e $W_2$ estão descorrelatadas no atraso zero. As Figuras \ref{fig:descorrelacao_cruzada} e \ref{fig:facs_descorrelacionadas} mostram a correlação cruzada e as FACs de $W_1[n]$ e $W_2[n]$.
+Com $\underline{W}[n] = \mathbf{Q}^T \underline{\widetilde{Z}}[n]$, tem-se $\mathbf{K}_{\underline{W}} = \mathbf{Q}^T \mathbf{K}_{\underline{Z}} \mathbf{Q} = \text{diag}(\lambda_1, \lambda_2)$ e $\rho_{W_1 W_2}[0] \approx 9{,}27\times 10^{-19} \approx 0$. As Figuras \ref{fig:desc_cruz}--\ref{fig:fac_w2} mostram o resultado.
 
-\begin{figure}[!htbp]
-    \centering
-    \begin{subfigure}[b]{0.48\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{Programas/resultados/passo4_descorrelacao/descorrelacao_cruzada_zoom.png}
-        \caption{FAC cruzada $\rho_{W_1 W_2}[k]$ ($0 \le k \le 250$).}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}[b]{0.48\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{Programas/resultados/passo4_descorrelacao/descorrelacao_cruzada_completa.png}
-        \caption{Comparação antes e depois da descorrelação.}
-    \end{subfigure}
-    \caption{Correlação cruzada entre $W_1[n]$ e $W_2[n]$.}
-    \label{fig:descorrelacao_cruzada}
-\end{figure}
+\fig{0.8}{passo4_descorrelacao/descorrelacao_cruzada_zoom.png}{Correlação cruzada entre $W_1[n]$ e $W_2[n]$.}{fig:desc_cruz}
+\fig{0.8}{passo4_descorrelacao/descorrelacao_cruzada_completa.png}{Comparação antes e depois da descorrelação.}{fig:desc_comp}
+\fig{0.8}{passo4_descorrelacao/fac_descorrelacionado_w1.png}{FAC de $W_1[n]$.}{fig:fac_w1}
+\fig{0.8}{passo4_descorrelacao/fac_descorrelacionado_w2.png}{FAC de $W_2[n]$.}{fig:fac_w2}
 
-\begin{figure}[!htbp]
-    \centering
-    \begin{subfigure}[b]{0.48\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{Programas/resultados/passo4_descorrelacao/fac_descorrelacionado_w1.png}
-        \caption{FAC de $W_1[n]$.}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}[b]{0.48\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{Programas/resultados/passo4_descorrelacao/fac_descorrelacionado_w2.png}
-        \caption{FAC de $W_2[n]$.}
-    \end{subfigure}
-    \caption{FACs de $W_1[n]$ e $W_2[n]$.}
-    \label{fig:facs_descorrelacionadas}
-\end{figure}
-
-\textbf{Descorrelação não implica independência}, exceto para vetores Gaussianos. Como os sinais não são Gaussianos (Item 1), $W_1[n]$ e $W_2[n]$ são descorrelatados, mas não necessariamente independentes.
+Descorrelação não implica independência, exceto para vetores Gaussianos. Como os sinais não são Gaussianos (Item 1), $W_1$ e $W_2$ são descorrelatados, mas não necessariamente independentes.
 
 % ========================================================
-% ITEM 5
-% ========================================================
-\section{Análise de Estacionariedade (ESA e EE)}
+\section{Estacionariedade}
 
-\noindent\textbf{Enunciado (Item 5):} \textit{Os sinais podem ser considerados processos ESA? EE?}
+\noindent\textbf{Item 5:} \textit{Os sinais podem ser considerados processos ESA? EE?}
 
 \medskip
-Pelo Capítulo 7 do J.J.W. \cite{JJW}:
-\begin{itemize}[leftmargin=*, nosep]
-    \item \textbf{ESA (Definição 7.10):} média constante ($m(t) = m$) e autocorrelação que depende só da diferença entre os instantes ($R(t_1, t_2) = R(t_2 - t_1)$);
-    \item \textbf{EE (Definição 7.9):} todas as f.d.p.s conjuntas são invariantes a deslocamentos no tempo.
-\end{itemize}
+Pelo Capítulo 7 do J.J.W.: ESA (Def.\ 7.10) exige média constante e $R(t_1,t_2) = R(t_2 - t_1)$; EE (Def.\ 7.9) exige f.d.p.s conjuntas invariantes no tempo.
 
-Para testar essas condições, observa-se o comportamento dos sinais ao longo do tempo (Figura \ref{fig:estacionariedade}).
-
-\begin{figure}[!htbp]
-    \centering
-    \begin{subfigure}[b]{0.48\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{Programas/resultados/passo1_sinais_e_histogramas/sinal_startrek_h263_64k.png}
-        \caption{H.263: o nível médio muda ao longo do tempo.}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}[b]{0.48\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{Programas/resultados/passo1_sinais_e_histogramas/sinal_startrek_mpeg4_hq.png}
-        \caption{MPEG-4: a dispersão muda ao longo do tempo.}
-    \end{subfigure}
-    \caption{Sinais ao longo do filme.}
-    \label{fig:estacionariedade}
-\end{figure}
-
-Conclusão:
-\begin{enumerate}[leftmargin=*, nosep]
-    \item \textbf{Não são ESA:} a média e a variância mudam ao longo do filme conforme a cena (cenas paradas usam menos bits que cenas de ação). No MPEG-4, a autocorrelação também depende de o quadro ser I, P ou B, e não só do atraso $k$.
-    \item \textbf{Não são EE:} todo processo EE com segundo momento finito é ESA. Como os sinais não são ESA, também não são EE.
-\end{enumerate}
+Nas Figuras \ref{fig:sinal_x} e \ref{fig:sinal_y}, o nível médio e a dispersão dos sinais mudam ao longo do filme, conforme a cena. Então \textbf{os sinais não são ESA}. Como todo processo EE com segundo momento finito é ESA, \textbf{também não são EE}.
 
 % ========================================================
-% ITEM 6
-% ========================================================
-\section{Densidade Espectral de Potência (DEP)}
+\section{Densidade Espectral de Potência}
 
-\noindent\textbf{Enunciado (Item 6):} \textit{Plotar as DEPs.}
+\noindent\textbf{Item 6:} \textit{Plotar as DEPs.}
 
 \medskip
-A DEP $S(f)$ é a Transformada de Fourier da autocorrelação (Wiener-Khinchin \cite{JJW}):
-\begin{equation}
-S(f) = \sum_{k=-\infty}^{\infty} R[k]\,e^{-j 2\pi f k}
-\end{equation}
-A Figura \ref{fig:deps} mostra as DEPs, calculadas pela FFT da autocorrelação. No MPEG-4 aparecem raias em $f = m/12$, que correspondem à repetição a cada $12$ quadros vista na FAC.
+A DEP é a Transformada de Fourier da autocorrelação (Wiener-Khinchin). As DEPs foram calculadas pela FFT da FAC. No MPEG-4 aparecem raias em $f = m/12$, que correspondem ao período de $12$ quadros da FAC.
 
-\begin{figure}[!htbp]
-    \centering
-    \begin{subfigure}[b]{0.48\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{Programas/resultados/passo6_7_dep_e_espectro/dep_linear_h263.png}
-        \caption{DEP de $X[n]$ (\texttt{startrek\_h263\_64k}).}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}[b]{0.48\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{Programas/resultados/passo6_7_dep_e_espectro/dep_linear_mpeg4.png}
-        \caption{DEP de $Y[n]$ (\texttt{startrek\_mpeg4\_hq}).}
-    \end{subfigure}
-    \caption{DEPs em escala linear.}
-    \label{fig:deps}
-\end{figure}
+\fig{0.85}{passo6_7_dep_e_espectro/dep_linear_h263.png}{DEP de $X[n]$ (H.263).}{fig:dep_x}
+\fig{0.85}{passo6_7_dep_e_espectro/dep_linear_mpeg4.png}{DEP de $Y[n]$ (MPEG-4).}{fig:dep_y}
 
 % ========================================================
-% ITEM 7
-% ========================================================
-\section{Cor do Espectro de Cada Sinal}
+\section{Cor do Espectro}
 
-\noindent\textbf{Enunciado (Item 7):} \textit{Qual a cor do espectro de cada um dos sinais de vídeo.}
+\noindent\textbf{Item 7:} \textit{Qual a cor do espectro de cada um dos sinais de vídeo.}
 
 \medskip
-A cor do espectro vem da inclinação da DEP em dB por década, nas baixas frequências ($S(f) \propto 1/f^\alpha$):
-\begin{itemize}[leftmargin=*, nosep]
-    \item \textbf{Ruído Branco ($\alpha = 0$):} DEP plana ($0\text{ dB/década}$);
-    \item \textbf{Ruído Rosa ($\alpha = 1$):} queda de $-10\text{ dB/década}$ ($S(f) \propto 1/f$);
-    \item \textbf{Ruído Marrom ($\alpha = 2$):} queda de $-20\text{ dB/década}$ ($S(f) \propto 1/f^2$).
-\end{itemize}
+Nas baixas frequências, $S(f) \propto 1/f^\alpha$. A queda em dB por década indica a cor: ruído branco ($\alpha = 0$) cai $0\text{ dB/déc}$, ruído rosa ($\alpha = 1$) cai $10\text{ dB/déc}$ e ruído marrom ($\alpha = 2$) cai $20\text{ dB/déc}$.
 
-Medindo a queda da DEP entre $X = 1{,}0$ e $X = 10{,}0$ (uma década), Figura \ref{fig:cor_espectro}:
-\begin{itemize}[leftmargin=*, nosep]
-    \item \textbf{H.263 (\texttt{startrek\_h263\_64k}):} queda de $10{,}05\text{ dB/década}$, \textbf{Ruído Rosa};
-    \item \textbf{MPEG-4 (\texttt{startrek\_mpeg4\_hq}):} queda de $9{,}66\text{ dB/década}$, também \textbf{Ruído Rosa}, com as raias em $f = m/12$ por cima.
-\end{itemize}
+\fig{0.85}{passo6_7_dep_e_espectro/cor_espectro_startrek_h263_64k.png}{Queda da DEP do H.263: $10{,}05\text{ dB/década}$.}{fig:cor_x}
+\fig{0.85}{passo6_7_dep_e_espectro/cor_espectro_startrek_mpeg4_hq.png}{Queda da DEP do MPEG-4: $9{,}66\text{ dB/década}$.}{fig:cor_y}
 
-\begin{figure}[!htbp]
-    \centering
-    \begin{subfigure}[b]{0.48\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{Programas/resultados/passo6_7_dep_e_espectro/cor_espectro_startrek_h263_64k.png}
-        \caption{H.263 (queda de $10{,}05\text{ dB/década}$).}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}[b]{0.48\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{Programas/resultados/passo6_7_dep_e_espectro/cor_espectro_startrek_mpeg4_hq.png}
-        \caption{MPEG-4 (queda de $9{,}66\text{ dB/década}$).}
-    \end{subfigure}
-    \caption{Queda da DEP em dB entre $X = 1{,}0$ e $X = 10{,}0$.}
-    \label{fig:cor_espectro}
-\end{figure}
+Os dois sinais caem cerca de $10\text{ dB}$ por década, então o espectro dos dois é \textbf{Ruído Rosa}.
 
-% ========================================================
-% CONCLUSÃO
 % ========================================================
 \section*{Conclusão}
 
-Neste trabalho, aplicamos os conceitos de variáveis aleatórias conjuntas e processos estocásticos a sinais reais de vídeo:
 \begin{enumerate}[leftmargin=*, nosep]
     \item Os sinais não são Gaussianos: só assumem valores não negativos, o H.263 tem dois picos e o MPEG-4 é assimétrico.
-    \item Os momentos confirmam $\text{VMQ} = \sigma^2 + m^2$. O bloco de $26.192$ amostras do MPEG-4 manteve a média e o desvio-padrão da série completa com erro menor que $1\%$.
-    \item A FAC do H.263 decai até o nível DC. A do MPEG-4 oscila com período de $12$ quadros e a curva central passa pelo meio das oscilações.
-    \item A diagonalização de $\mathbf{K}_{\underline{Z}}$ anulou a correlação em $k=0$ ($\rho_{W_1 W_2}[0] \approx 0$). Os sinais não são Gaussianos, então descorrelatados não significa independentes.
-    \item Os sinais não são ESA nem EE. As DEPs caem cerca de $10\text{ dB/década}$ ($10{,}05$ no H.263 e $9{,}66$ no MPEG-4), ou seja, o espectro é Ruído Rosa.
+    \item O bloco cortado do MPEG-4 manteve a média e o desvio-padrão da série completa com erro menor que $1\%$.
+    \item A FAC do H.263 decai até o nível DC. A do MPEG-4 oscila com período de $12$ quadros. A correlação cruzada é próxima de zero.
+    \item A diagonalização de $\mathbf{K}_{\underline{Z}}$ anulou a correlação em $k=0$. Como os sinais não são Gaussianos, isso não garante independência.
+    \item Os sinais não são ESA nem EE. As DEPs caem cerca de $10\text{ dB/década}$: o espectro é Ruído Rosa.
 \end{enumerate}
 
-% ========================================================
-% REFERÊNCIAS BIBLIOGRÁFICAS
-% ========================================================
 \begin{thebibliography}{9}
 \bibitem{JJW} ALBUQUERQUE, J. P. A.; FORTES, J. M. P.; FINAMORE, W. A. \textit{Probabilidade, Variáveis Aleatórias e Processos Estocásticos}. Rio de Janeiro: Editora PUC-Rio / LTC, Capítulos 6 e 7.
-\bibitem{Rosangela} COELHO, R. F. \textit{Notas de Aula e Apostilas de Modelos Probabilísticos}. Seção de Engenharia Elétrica e de Sistemas (SE/3), Instituto Militar de Engenharia (IME), 2026.
+\bibitem{Rosangela} COELHO, R. F. \textit{Notas de Aula e Apostilas de Modelos Probabilísticos}. SE/3, Instituto Militar de Engenharia (IME), 2026.
 \end{thebibliography}
 
 \end{document}
